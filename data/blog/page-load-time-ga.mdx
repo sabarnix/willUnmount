@@ -1,0 +1,772 @@
+---
+title: How to measure page load time of SPA using GTM and GA4
+date: '2024-11-22'
+tags: ['code']
+draft: false
+summary: How to load the page load time of an enterprise SPA and how to figure out that all data are loaded.
+---
+
+## Summary
+
+We are trying to measure the time taken by each route in an SPA to load with all data and send the measurement to GTM.
+Which will be sent to GA4 from there. Along with the page load time we will log the time taken by each network request in the page (xhr/fetch or other static resources).
+Eventually we will be able to generate a report to see the performance of each route and further debug which resource under the route took the most time.
+
+## What is page load time?
+
+Page load time is the time taken to load a complete page starting from entering the URL in browser.
+
+### Page load time for server rendered non SPA apps.
+
+To measure the page load time if your app is completely server rendered and the page load is not dependent
+on any API call. check the following example.
+
+<Sandpack
+  template="static"
+  theme="auto"
+  files={{
+    "index.html": `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+    <p>The total page load time will be displayed below:</p>
+
+    <div id="loadTime">Calculating...</div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <img height="150px" src="https://images.unsplash.com/photo-1732109364161-7db69c7ae8ce?q=80&w=986&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="a close up of rain">
+    <script>
+      window.addEventListener('load', () => {
+        const time = window.performance.timing;
+        const pageLoadTime = time.loadEventStart - time.navigationStart;
+
+        document.querySelector('#loadTime').innerHTML = pageLoadTime + 'ms';
+      })
+
+    </script>
+
+</body>
+</html>
+    `
+  }}
+/>
+We are using the performance API to calculate the load time. Considering the time between loadEventStart and navigationStart.
+Refer to the image from MDN below. [Link to the doc](https://developer.mozilla.org/en-US/docs/Web/Performance/Navigation_and_resource_timings)
+<img src="https://developer.mozilla.org/en-US/docs/Web/Performance/Navigation_and_resource_timings/screen_shot_2019-05-03_at_1.06.27_pm.png" style={{backgroundColor: '#fff'}} />
+We are measuring till loadEvent start which means we are excluding the time taken by the onLoad handler.
+
+This API does not take into account the time taken by any API(fetch/xhr) call.
+
+<Sandpack
+  template="static"
+  theme="auto"
+  files={{
+    "index.html": `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+    <p>The total page load time will be displayed below:</p>
+
+    <div id="loadTime">Calculating...</div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <img height="150px" src="https://images.unsplash.com/photo-1732109364161-7db69c7ae8ce?q=80&w=986&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="a close up of rain">
+    <script>
+      fetch('https://reqres.in/api/users?delay=3').then(r => r.json()).then(console.log);
+    </script>
+    <script>
+      window.addEventListener('load', () => {
+        const time = window.performance.timing;
+        const pageLoadTime = time.loadEventStart - time.navigationStart;
+
+        document.querySelector('#loadTime').innerHTML = pageLoadTime + 'ms';
+      })
+
+    </script>
+
+</body>
+</html>
+    `
+  }}
+/>
+
+As explained by this example, the fetch call takes at least 3 seconds to load but the load event does not wait for it.
+
+### Page load time for single page application
+
+Let's see example of a SPA with multiple routes which load data from API response.
+
+<Sandpack
+        template="react"
+        files={{
+// App.js
+"/App.js": {
+  code: `
+  import React, { useState, useEffect } from "react";
+  import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+
+// Home Component
+const Home = () => (
+
+<div>
+  <h1>Welcome to Home Page</h1>
+  <p>Select a page to navigate.</p>
+</div>
+);
+
+// Users Component
+const Users = () => {
+const [users, setUsers] = useState([]);
+const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      const getUsers = async () => {
+        try {
+          const data = await fetch("https://reqres.in/api/users?delay=1").then(_ => _.json());
+          setUsers(data.data);
+        } catch (err) {
+          console.error("Error fetching users:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      getUsers();
+    }, []);
+
+    return (
+      <div>
+        <h1>Users</h1>
+        {loading ? (
+          <p>Loading users...</p>
+        ) : (
+          <ul>
+            {users.map((user) => (
+              <li key={user.id}>
+                {user.first_name} {user.last_name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+
+};
+
+// Products Component
+const Products = () => {
+const [products, setProducts] = useState([]);
+const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      const getProducts = async () => {
+        try {
+          const data = await fetch("https://reqres.in/api/products?delay=1").then(_ => _.json());
+          setProducts(data.data);
+        } catch (err) {
+          console.error("Error fetching products:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      getProducts();
+    }, []);
+
+    return (
+      <div>
+        <h1>Products</h1>
+        {loading ? (
+          <p>Loading products...</p>
+        ) : (
+          <ul>
+            {products.map((product) => (
+              <li key={product.id} style={{ marginBottom: 10 }}>
+                <div
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    backgroundColor: product.color,
+                    display: "inline-block",
+                    marginRight: "10px",
+                  }}
+                ></div>
+                {product.name} - Year: {product.year}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+
+};
+
+// Main App Component
+const App = () => {
+return (
+
+<Router>
+<nav>
+<ul
+style={{
+              display: "flex",
+              listStyleType: "none",
+              gap: "10px",
+              padding: "0",
+            }} >
+<li>
+<Link to="/">Home</Link>
+</li>
+<li>
+<Link to="/users">Users</Link>
+</li>
+<li>
+<Link to="/products">Products</Link>
+</li>
+</ul>
+</nav>
+
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/products" element={<Products />} />
+        </Routes>
+      </Router>
+    );
+
+};
+
+export default App;
+`,
+},
+
+// index.js
+"/src/index.js": {
+code: `
+import React from "react";
+import ReactDOM from "react-dom";
+import App from "./App";
+import "./index.css";
+
+ReactDOM.render(
+
+<React.StrictMode>
+  <App />
+</React.StrictMode>
+, document.getElementById("root") ); `, },
+
+}}
+customSetup={{
+    dependencies: {
+      "react-router-dom": "^6.14.0",
+      react: "^18.0.0",
+      "react-dom": "^18.0.0",
+    },
+  }}
+theme="auto"
+/>
+
+In this app there are three routes Home, Users and Products.
+Since the routing is handled client side (by react-router), `document.addEventListener('load')` will only trigger once
+during the page load and not on route change.
+
+## Detect page load start on SPA route change
+
+We can add an event listener on route change to start our measurement.
+
+```javascript
+var oldUrl = window.location.href
+navigation.addEventListener('navigate', (event) => {
+  var newUrl = event.destination.url
+  if (oldUrl !== newUrl) {
+    oldUrl = newUrl
+    init()
+  }
+})
+```
+
+## Detect page load complete
+
+### LCP
+
+Using [Web Vitals](https://github.com/GoogleChrome/web-vitals) we can detect LCP of a page
+
+```javascript
+<script type="module">
+  import {onLCP} from 'https://unpkg.com/web-vitals@4?module'; onLCP(console.log);
+</script>
+```
+
+This is only triggered once per page load and the support for client side route (or soft routes) is still
+experimental (you have to turn on a flag on chrome and use a different branch from the repo). Which won't work in our case.
+
+### Polling
+
+We can use the new [Performance API](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceResourceTiming) to get the time
+for all resource load.
+
+```javascript
+const observer = new PerformanceObserver((list) => {
+  list.getEntries().forEach((entry) => {
+    console.log(entry)
+  })
+})
+
+observer.observe({ type: 'resource', buffered: true })
+```
+
+Buffered flag here listens to past performance entries.
+
+You can refer to the MDN docs for all the properties of entry. We will only need `PerformanceEntry.duration`
+and `PerformanceEntry.name`. Duration will give the us the time taken to load the resource and name will give use
+the URL. The entries can be filtered by `PerformanceEntry.initiatorType` to get a specific kind of resource eg stylesheet or xhr.
+
+The problem here is there is no web API to detect a request start, we will only be notified on request end.
+Because of this it is not possible to tell if there is any other request in progress.
+We can use a custom wrapper for fetch and xhr call but
+that won't be a generalized solution.
+
+We can try to overcome this by polling. After every request completion event we will wait for certain amount of time
+if no other request comes we will consider all requests are resolved and if we get another request before the we time
+we reset the wait. This is not a foolproof solution if some resource takes more than the wait after other requests are completed
+then that won't get counted.
+
+Below is the implementation.
+
+```javascript
+;(function () {
+  var startTime = performance.now()
+  var timer
+  var logSent = false
+  var pollInterval = 3000
+
+  navigation.addEventListener('navigate', () => {
+    startTime = performance.now()
+    var logSent = false
+    if (timer) {
+      clearTimeout(timer)
+    }
+  })
+
+  function sendLog() {
+    timer = null
+    if (!logSent) {
+      console.log('Load time', performance.now() - startTime - pollInterval)
+    }
+    logSent = true
+  }
+
+  const observer = new PerformanceObserver((items) => {
+    items
+      .getEntries()
+      .filter(
+        ({ initiatorType }) => initiatorType === 'fetch' || initiatorType === 'xmlhttprequest'
+      )
+      .forEach((entry) => {
+        console.log('network request', entry.name, entry.duration)
+        if (timer) {
+          clearTimeout(timer)
+        }
+        timer = setTimeout(sendLog, pollInterval)
+      })
+  })
+
+  observer.observe({
+    entryTypes: ['resource'],
+    buffered: true,
+  })
+})()
+```
+
+Let's try this with our SPA App.
+
+<Sandpack
+        template="react"
+        files={{
+// App.js
+"/App.js": {
+  code: `
+  import React, { useState, useEffect } from "react";
+  import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+  import './measurePageSpeed';
+
+// Home Component
+const Home = () => (
+
+<div>
+  <h1>Welcome to Home Page</h1>
+  <p>Select a page to navigate.</p>
+</div>
+);
+
+// Users Component
+const Users = () => {
+const [users, setUsers] = useState([]);
+const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      const getUsers = async () => {
+        try {
+          const data = await fetch("https://reqres.in/api/users?delay=1").then(_ => _.json());
+          setUsers(data.data);
+        } catch (err) {
+          console.error("Error fetching users:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      getUsers();
+    }, []);
+
+    return (
+      <div>
+        <h1>Users</h1>
+        {loading ? (
+          <p>Loading users...</p>
+        ) : (
+          <ul>
+            {users.map((user) => (
+              <li key={user.id}>
+                {user.first_name} {user.last_name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+
+};
+
+// Products Component
+const Products = () => {
+const [products, setProducts] = useState([]);
+const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      const getProducts = async () => {
+        try {
+          const data = await fetch("https://reqres.in/api/products?delay=1").then(_ => _.json());
+          setProducts(data.data);
+        } catch (err) {
+          console.error("Error fetching products:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      getProducts();
+    }, []);
+
+    return (
+      <div>
+        <h1>Products</h1>
+        {loading ? (
+          <p>Loading products...</p>
+        ) : (
+          <ul>
+            {products.map((product) => (
+              <li key={product.id} style={{ marginBottom: 10 }}>
+                <div
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    backgroundColor: product.color,
+                    display: "inline-block",
+                    marginRight: "10px",
+                  }}
+                ></div>
+                {product.name} - Year: {product.year}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+
+};
+
+const App = () => {
+return (<Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+
+<nav>
+  <ul>
+    <li>
+      <Link to="/">Home</Link>
+    </li>
+    <li>
+      <Link to="/users">Users</Link>
+    </li>
+    <li>
+      <Link to="/products">Products</Link>
+    </li>
+  </ul>
+</nav>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/products" element={<Products />} />
+        </Routes>
+      </Router>
+    );
+
+};
+
+export default App;
+`,
+},
+"measurePageSpeed.js": {
+    code: `
+(function () {
+  var startTime, timer, logSent;
+  var pollInterval = 2000;
+  function init() {
+    logSent = false;
+    startTime = performance.now();
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(sendLog, pollInterval);
+  }
+  var oldUrl = window.location.href;
+  navigation.addEventListener("navigate", (event) => {
+    var newUrl = event.destination.url;
+    if (oldUrl !== newUrl) {
+      oldUrl = newUrl;
+      init();
+    }
+  });
+  function sendLog() {
+    timer = null;
+    if (!logSent) {
+      console.log("Load time", performance.now() - startTime - pollInterval);
+    }
+    logSent = true;
+  }
+  const observer = new PerformanceObserver((items) => {
+    items
+      .getEntries()
+      .filter(({ initiatorType }) => initiatorType === "fetch")
+      .forEach((entry) => {
+        console.log("network request", entry.name, entry.duration);
+        if (timer) {
+          clearTimeout(timer);
+        }
+        timer = setTimeout(sendLog, pollInterval);
+      });
+  });
+  observer.observe({
+    entryTypes: ["resource"],
+    buffered: true,
+  });
+  init();
+})();
+`
+
+}
+}}
+customSetup={{
+    dependencies: {
+      "react-router-dom": "^6.14.0",
+      react: "^18.0.0",
+      "react-dom": "^18.0.0",
+    },
+  }}
+options={{
+    showConsole: true,
+    showConsoleButton: true,
+  }}
+theme="auto"
+/>
+
+## Logging it in GA
+
+## **Step 1: Define Your Custom Measure in Google Analytics**
+
+Before sending custom data from GTM, you need to set up a custom dimension or metric in Google Analytics to receive the data.
+
+### **For Google Analytics 4 (GA4):**
+
+1. **Access the Admin Panel:**
+
+   - Log in to your Google Analytics account.
+   - Click on the `Admin` gear icon at the bottom-left corner.
+
+2. **Navigate to Custom Definitions:**
+
+   - In the `Data display` section, select **Custom definitions**.
+   - Click on tab **Custom metrics**.
+   - Then click on **Create custom metric**.
+
+3. **Create a New Custom Metric:**
+
+   - **Name:** Page Load Time.
+   - **Scope:** Event.
+   - **Description:** Optionally, provide a description.
+   - **Measurement Unit:** Milliseconds.
+   - **Event Parameter:** pageLoad.
+   - Click **Save**.
+
+4. **Create another Custom Metric:**
+   - **Name:** API Load Time.
+   - **Scope:** Event.
+   - **Description:** Optionally, provide a description.
+   - **Measurement Unit:** Milliseconds.
+   - **Event Parameter:** apiLoadTime.
+   - Click **Save**.
+
+---
+
+## \*\*Step 2: Add the script to your page
+
+### **2.1 Make sure GTM script is added to your page**
+
+it should look like this:
+
+```
+		// Google Tag Manager.
+        window.dataLayer = window['dataLayer'] || [];
+		document.addEventListener('DOMContentLoaded', () => {
+			/** init gtm after 3500 milliseconds - this could be adjusted */
+			setTimeout(initGTM, 3500);
+		});
+
+		function initGTM() {
+			if (window.gtmDidInit) {
+				return false;
+			}
+			// Flag to ensure script does not get added to DOM more than once.
+			window.gtmDidInit = true;
+
+			const script = document.createElement('script');
+			script.type = 'text/javascript';
+			script.async = true;
+
+			// Ensure PageViews is always tracked (on script load)
+			script.onload = () => {
+				dataLayer.push({
+					event: 'gtm.js',
+					'gtm.start': new Date().getTime(),
+					'gtm.uniqueEventId': 0
+				});
+			};
+
+			script.src = 'https://www.googletagmanager.com/gtm.js?id=YOUR ID';
+			document.head.appendChild(script);
+		}
+```
+
+### **2.1 Make sure GTM script is added to your page**
+
+```javascript
+;(function () {
+  try {
+    window.dataLayer = window.dataLayer || []
+    var startTime = performance.now()
+    var timer
+    var logSent = false
+    var pollInterval = 3000
+
+    navigation.addEventListener('navigate', () => {
+      startTime = performance.now()
+      var logSent = false
+      if (timer) {
+        clearTimeout(timer)
+      }
+    })
+
+    function sendLog() {
+      timer = null
+      if (!logSent) {
+        window.dataLayer.push({
+          event: 'pageLoad',
+          pageLoad: performance.now() - startTime - pollInterval,
+        })
+      }
+      logSent = true
+    }
+
+    const observer = new PerformanceObserver((items) => {
+      items
+        .getEntries()
+        .filter(
+          ({ initiatorType }) => initiatorType === 'fetch' || initiatorType === 'xmlhttprequest'
+        )
+        .forEach((entry) => {
+          window.dataLayer.push({
+            event: 'apiTimings',
+            apiTimings: {
+              url: entry.name.replace(location.origin, ''),
+              value: entry.duration,
+            },
+          })
+          if (timer) {
+            clearTimeout(timer)
+          }
+          timer = setTimeout(sendLog, pollInterval)
+        })
+    })
+
+    observer.observe({
+      entryTypes: ['resource'],
+      buffered: true,
+    })
+  } catch (error) {
+    console.error('Error:', error)
+  }
+})()
+```
+
+---
+
+## **Step 3: Configure Google Tag Manager**
+
+### **3.1 Create a Data Layer Variable**
+
+1. **In GTM, go to Variables:**
+
+   - Navigate to **Variables** in the left sidebar.
+   - Under **User-Defined Variables**, click **New**.
+
+2. **Set Up the Variable:**
+   - **Variable Type:** Select **Data Layer Variable**.
+   - **Data Layer Variable Name:** pageLoad.
+   - Click **Save**.
+
+similarly create apiUrl and apiTimings
+
+### **3.2 Create a Trigger for the Custom Event**
+
+1. **Go to Triggers:**
+
+   - Click on **Triggers** in the left sidebar.
+   - Click **New**.
+
+2. **Set Up the Trigger:**
+
+   - **Trigger Type:** Select **Custom Event**.
+   - **Event Name:** `pageLoad`.
+   - Click **Save**.
+
+   similarly create one for apiTimings
+
+### **3.3 Create or Modify a GA4 Event Tag**
+
+1. **Go to Tags:**
+
+   - Click on **Tags** in the left sidebar.
+   - Click **New**.
+
+2. **Set Up the Tag:**
+
+   - **Tag Type:** Select **Google Analytics: GA4 Event**.
+   - **Configuration Tag:** Choose your existing GA4 Configuration tag. If you don't have one, create it with your GA4 Measurement ID.
+   - **Event Name:** pageLoad.
+
+3. **Add Event Parameters:**
+
+   - Under **Event Parameters**, click **Add Row**.
+   - **Parameter Name:** `pageLoad`.
+   - **Value:** Click the variable icon and select the Data Layer Variable Data Layer Variable - pageLoad.
+
+similarly create one for API timings measurement
+
+Finally publish the changes. Now, every time a user loads your blog page, the Google Analytics event will be sent with the `pageLoad` parameter indicating that the page has been loaded.

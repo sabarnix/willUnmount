@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="48" height="48" fill="none">
+  <!-- Square Frame -->
+  <rect x="2" y="2" width="60" height="60" rx="10" stroke="#DE1D8D" stroke-width="3" fill="none" />
+
+  <!-- Minimalist 'W' Icon -->
+  <path d="M16 16 L24 48 L32 32 L40 48 L48 16" stroke="#DE1D8D" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
