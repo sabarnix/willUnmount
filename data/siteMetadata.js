@@ -2,7 +2,7 @@
 const siteMetadata = {
   title: 'willUnmount',
   author: 'Sabarni Das',
-  headerTitle: "willUnmount",
+  headerTitle: 'willUnmount',
   description: 'my technical blog',
   language: 'en-us',
   theme: 'system', // system, dark or light
