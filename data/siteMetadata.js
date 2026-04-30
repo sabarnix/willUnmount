@@ -6,8 +6,8 @@ const siteMetadata = {
   description: 'my technical blog',
   language: 'en-us',
   theme: 'system', // system, dark or light
-  siteUrl: 'https://tailwind-nextjs-starter-blog.vercel.app',
-  siteRepo: 'https://github.com/timlrx/tailwind-nextjs-starter-blog',
+  siteUrl: 'https://willunmount.sabarni.in',
+  siteRepo: 'https://github.com/sabarnix/willUnmount',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.png`,
   socialBanner: `${process.env.BASE_PATH || ''}/static/images/twitter-card.png`,
   email: 'sabarnix@gmail.com',
