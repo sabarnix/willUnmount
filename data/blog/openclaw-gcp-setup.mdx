@@ -1,6 +1,6 @@
 ---
 title: Run an AI Agent for Free using $10 Monthly Google Credits
-date: '2026-04-29'
+date: '2026-04-30'
 tags: ['ai', 'gcp', 'openclaw', 'guide']
 draft: false
 summary: Learn how to host a private, production-grade OpenClaw agent on GCP using free credits, Spot instances, and Tailscale.
@@ -16,25 +16,17 @@ Google Cloud gives ten dollars in monthly free credits to many developer account
 
 ## The Ten Dollar Budget Strategy
 
-Most cloud setups cost between twenty and fifty dollars a month. You can hit the ten dollar target by using a schedule.
+Most cloud setups cost between twenty and fifty dollars a month. You can hit the ten dollar target by using a Spot instance and efficient configuration.
 
-### Why skip 24/7?
+### Why Spot Instances?
 
-Running this 24 hours a day costs about ten dollars and ten cents per month. That puts you just over the free credit limit.
+Spot Instances allow you to use Google's spare capacity at a massive 60 to 91 percent discount. While Google can technically reclaim the machine if a full-paying customer needs it, a quick 30-second restart every few days is a fair trade for saving over 100 dollars a year.
 
-### The Schedule Benefit
+### Connectivity without Static IPs
 
-If you turn the agent off at night (10 PM to 9 AM), the total cost drops to about six dollars and forty cents per month. This gives you a three dollar and sixty cent buffer for heavy AI usage without getting a bill.
+The biggest challenge with Spot instances is the IP address change. Every time the machine restarts, Google assigns it a new public address. This would normally break a traditional domain name and require a static IP reservation. However, Google charges about three dollars and thirty cents a month just to hold that address, which would eat over 30 percent of your total budget.
 
----
-
-## Why this setup works
-
-Hosting an AI agent on a tight budget requires a few clever architectural choices. First, we use Spot Instances instead of regular ones. These allow you to use Google's spare capacity at a massive 60 to 91 percent discount. While Google can technically reclaim the machine if a full-paying customer needs it, a quick 30-second restart every few days is a fair trade for saving over 100 dollars a year.
-
-The biggest challenge with Spot instances is the IP address change. Every time the machine restarts or wakes up from its nightly schedule, Google assigns it a new public address. This would normally break a traditional domain name and require a static IP reservation. However, Google charges about three dollars and thirty cents a month just to hold that address while the VM is off, which would eat over 30 percent of your total budget.
-
-This is where Tailscale and MagicDNS come in. Tailscale creates a secure, private network between your devices, while its MagicDNS feature assigns your VM a permanent hostname (like `http://openclaw-agent`). This name never changes, even when the underlying IP does. By using this setup, you get a reliable, encrypted connection to your dashboard that is completely invisible to the public internet, all while keeping your costs at zero for networking and security.
+Tailscale and MagicDNS solve this. Tailscale creates a secure, private network between your devices, while its MagicDNS feature assigns your VM a permanent hostname (like `https://openclaw-agent.tailnet-id.ts.net`). This name never changes, even when the underlying IP does.
 
 ---
 
@@ -44,50 +36,24 @@ This is where Tailscale and MagicDNS come in. Tailscale creates a secure, privat
 
 Before you can start your agent, you need a "Project" to hold your resources.
 
-1.  Visit the Console: Go to the [Google Cloud Resource Manager](https://console.cloud.google.com/projectcreate).
-2.  Fill in the Details:
-    *   Project Name: Enter `My AI Agent` (or any name you like).
-    *   Project ID: Google will generate one automatically (example: `ai-agent-45123`). **Copy this ID down**—you will need it for Step 3.
-    *   Location: Leave as `No organization` (unless you are using a workspace account).
-3.  Click Create.
+1. Visit the Console: Go to the [Google Cloud Resource Manager](https://console.cloud.google.com/projectcreate).
+2. Fill in the Details:
+   - Project Name: Enter `My AI Agent` (or any name you like).
+   - Project ID: Copy this ID down—you will need it for Step 3.
+3. Click Create.
 
 ### 1.2 Enable APIs
 
-Once your project is created, ensure you have the project selected in the top-left dropdown, then enable these two services:
+Once your project is created, enable these two services:
 
-1.  Vertex AI: Visit the [Vertex AI Dashboard](https://console.cloud.google.com/vertex-ai) and click **Enable All Recommended APIs**.
-2.  Compute Engine: Visit the [VM Instances page](https://console.cloud.google.com/compute/instances) and wait for the hardware dashboard to initialize.
-
----
-
-## Step 2: Install the Google Cloud CLI (gcloud)
-
-### 2.1 Installation
-
-To manage your server, you need the `gcloud` tool on your computer.
-
-| OS | Command / Link |
-| :--- | :--- |
-| macOS | `brew install --cask google-cloud-sdk` |
-| Windows | [Download Installer](https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe) |
-| Linux | `curl https://sdk.cloud.google.com | bash` |
-
-### 2.2 Authentication (Linking your Account)
-
-Once installed, you must link the CLI to your Google account and project:
-
-1.  Run Initialize: Open your terminal (or PowerShell) and type:
-    ```bash
-    gcloud init
-    ```
-2.  Login: It will ask to log you in. Type `Y`, and it will open your browser. Select the Google account you used in Step 1.
-3.  Select Project: Back in the terminal, it will show a list of your projects. Select the Project ID you copied down in Step 1.1.
+1. Vertex AI: Visit the [Vertex AI Dashboard](https://console.cloud.google.com/vertex-ai) and click **Enable All Recommended APIs**.
+2. Compute Engine: Visit the [VM Instances page](https://console.cloud.google.com/compute/instances) and wait for the hardware dashboard to initialize.
 
 ---
 
-## Step 3: Create the VM
+## Step 2: Create the VM
 
-Run this command to create an optimized server. **Make sure to replace `[YOUR_PROJECT_ID]` with the ID you saved in Step 1.**
+Run this command to create an optimized server. **Replace `[YOUR_PROJECT_ID]` with your ID from Step 1.**
 
 ```bash
 gcloud compute instances create openclaw-agent \
@@ -95,120 +61,84 @@ gcloud compute instances create openclaw-agent \
     --zone=us-central1-a \
     --machine-type=e2-small \
     --provisioning-model=SPOT \
-    --instance-termination-action=TERMINATE \
+    --instance-termination-action=STOP \
     --image-project=ubuntu-os-cloud \
     --image-family=ubuntu-2204-lts \
     --boot-disk-size=20GB \
     --tags=http-server,https-server
 ```
 
-### What do these parameters mean?
+---
 
-*   `--zone=us-central1-a`: Sets the physical location of your server. `us-central1` is one of the cheapest regions in the world.
-*   `--machine-type=e2-small`: Selects a server with 2GB of RAM. This is the minimum required to run OpenClaw smoothly.
-*   `--provisioning-model=SPOT`: This is the "Magic" setting. It gives you the server at a **90 percent discount** by using Google's spare capacity.
-*   `--image-family=ubuntu-2204-lts`: Installs the latest long-term support version of Ubuntu Linux.
-*   `--boot-disk-size=20GB`: Provides enough storage for your agent's memory and web browsing data while staying inside the free credit limit.
-*   `--tags=http-server`: Pre-configures the server to allow web traffic (needed for your dashboard).
+## Step 3: Secure Private Access (Tailscale)
+
+1. SSH into the server:
+   ```bash
+   gcloud compute ssh openclaw-agent
+   ```
+2. Install Tailscale:
+   ```bash
+   curl -fsSL https://tailscale.com/install.sh | sh
+   sudo tailscale up --ssh
+   ```
+3. Authenticate: Paste the printed URL into your browser to log in.
+4. On your laptop: Install the [Tailscale App](https://tailscale.com/download) and log in.
 
 ---
 
-## Step 4: Secure Private Access (Tailscale and MagicDNS)
+## Step 4: Install OpenClaw
 
-Tailscale creates a "private hallway" between your laptop and your server. MagicDNS then gives that hallway an easy-to-remember name.
-
-1.  On the server: SSH in (`gcloud compute ssh openclaw-agent`) and run:
-    ```bash
-    curl -fsSL https://tailscale.com/install.sh | sh
-    sudo tailscale up
-    ```
-2.  Click the Link: It will print a URL. Paste it into your browser to log in.
-3.  Enable MagicDNS: Go to your [Tailscale DNS Settings](https://login.tailscale.com/admin/dns) and ensure MagicDNS is "Enabled."
-4.  On your phone/laptop: Install the [Tailscale App](https://tailscale.com/download) and log in.
-
-![Your Live OpenClaw Dashboard](/static/images/openclaw_dashboard.png)
-
-*Above: Your dashboard running securely over Tailscale MagicDNS.*
-
----
-
-## Step 5: Server Tuning
-
-You must add Swap memory to prevent build crashes on the 2GB VM.
+We use the official global installer for the best stability on low-resource VMs.
 
 ```bash
-# Add 2GB Swap Memory
-sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
-sudo mkswap /swapfile && sudo swapon /swapfile
-echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-
-# Install Core Tools
+# 1. Install Node.js 22
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-sudo apt-get install -y nodejs git
-sudo npm install -g pnpm pm2
+sudo apt-get install -y nodejs
+
+# 2. Install OpenClaw globally
+curl -sSL https://install.openclaw.ai | bash
+
+# 3. Install PM2 for process management
+sudo npm install -g pm2
 ```
 
 ---
 
-## Step 6: AI Bridge (LiteLLM)
+## Step 5: AI Bridge (LiteLLM)
 
 OpenClaw works best with Vertex AI via a LiteLLM Proxy bridge.
 
-1. Install LiteLLM:
-   ```bash
-   python3.11 -m venv ~/litellm-env
-   ~/litellm-env/bin/pip install 'litellm[proxy]' google-cloud-aiplatform
-   ```
-2. Configure `~/litellm_config.yaml`:
-   Create this file and paste the following. It tells LiteLLM to translate OpenAI requests into Vertex AI calls.
-   ```yaml
-   model_list:
-     - model_name: gemini-2.5-flash
-       litellm_params:
-         model: vertex_ai/gemini-2.5-flash
-         vertex_project: [YOUR_PROJECT_ID]
-         vertex_location: global
-     - model_name: gemini-2.5-pro
-       litellm_params:
-         model: vertex_ai/gemini-2.5-pro
-         vertex_project: [YOUR_PROJECT_ID]
-         vertex_location: global
-   ```
-3. Start with PM2:
-   ```bash
-   pm2 start ~/litellm-env/bin/litellm --name litellm-proxy --interpreter none -- --config ~/litellm_config.yaml --port 4000
-   ```
+```bash
+# 1. Setup environment
+python3 -m venv ~/litellm-env
+~/litellm-env/bin/pip install 'litellm[proxy]' google-cloud-aiplatform
+
+# 2. Configure ~/litellm_config.yaml
+cat <<EOF > ~/litellm_config.yaml
+model_list:
+  - model_name: gemini-2.5-flash
+    litellm_params:
+      model: vertex_ai/gemini-2.5-flash
+      vertex_project: [YOUR_PROJECT_ID]
+      vertex_location: global
+EOF
+
+# 3. Start with PM2
+pm2 start ~/litellm-env/bin/litellm --name litellm-proxy --interpreter none -- --config ~/litellm_config.yaml --port 4000
+```
 
 ---
 
-## Step 7: Configure and Pair OpenClaw
+## Step 6: Configure OpenClaw
 
-### 7.1 Detailed openclaw.json
-
-Open your config file: `nano ~/.openclaw/openclaw.json` and ensure it looks like this. This setup enables Tailscale and points the agent to your LiteLLM bridge.
+Initialize your configuration at `~/.openclaw/openclaw.json`:
 
 ```json
 {
   "gateway": {
-    "tailscale": { "mode": "serve", "resetOnExit": true },
+    "tailscale": { "mode": "serve" },
     "bind": "loopback",
     "auth": { "allowTailscale": true }
-  },
-  "agents": {
-    "defaults": {
-      "model": { "primary": "openai/gemini-2.5-flash" },
-      "models": {
-        "openai/gemini-2.5-flash": { "alias": "Gemini 2.5 Flash (Thinking)" },
-        "openai/gemini-2.5-pro": { "alias": "Gemini 2.5 Pro (Genius)" }
-      }
-    }
-  },
-  "models": { "mode": "replace" },
-  "plugins": {
-    "entries": {
-      "openai": { "enabled": true },
-      "telegram": { "enabled": true }
-    }
   },
   "auth": {
     "profiles": {
@@ -219,61 +149,100 @@ Open your config file: `nano ~/.openclaw/openclaw.json` and ensure it looks like
         "baseUrl": "http://127.0.0.1:4000/v1"
       }
     }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN"
+    }
   }
 }
 ```
 
-### 7.2 Whitelist your Domain
-
-Open your config file on the server: `nano ~/.openclaw/openclaw.json`. Update the `allowedOrigins` to include your Tailscale name:
-
-```json
-"gateway": {
-  "controlUi": {
-    "allowedOrigins": ["https://openclaw-agent.tail-your-id.ts.net"]
-  }
-}
+Start the gateway:
+```bash
+pm2 start openclaw -- gateway --allow-unconfigured
+pm2 save
 ```
 
-Note: You can find your exact Tailscale URL by running `tailscale status` on the server.
+---
 
-### 7.3 Pair your Device
+## Step 7: Persistent Custom Skills
 
-1.  Open the Dashboard: Go to your Tailscale URL (example: `https://openclaw-agent...`) in your browser.
-2.  Get the Request ID: You will see a "Pairing Required" screen with a code.
-3.  Approve it: Back in your server terminal, run:
+To ensure your custom skills (like `tmux-remote`) survive core updates, store them in the workspace directory.
+
+1. Create the directory: `mkdir -p ~/.openclaw/workspace/skills/`
+2. Move your skill there.
+3. OpenClaw will automatically detect and load skills from this path.
+
+---
+
+## Step 9: Make it Resilient (Auto-Restart and Alerts)
+
+Since we are using **Spot Instances**, Google might take your VM back during the day. We can automate the "Restart" button and set up alerts so you never stay offline for long.
+
+### 9.1 Preemption Monitor (Telegram Alerts)
+This script runs in the background and listens for Google's "30-second warning." It will send you a Telegram message before the VM shuts down.
+
+1.  **Create the script:** `nano ~/preempt_monitor.py`
+2.  **Paste this code:**
+    ```python
+    import requests
+    import time
+    import os
+    from dotenv import load_dotenv
+
+    load_dotenv('/home/[YOUR_USER]/openclaw/.env')
+    TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+    CHAT_ID = '[YOUR_CHAT_ID]'
+
+    def send_telegram(message):
+        url = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
+        requests.post(url, json={'chat_id': CHAT_ID, 'text': message})
+
+    def check_preemption():
+        url = 'http://metadata.google.internal/computeMetadata/v1/instance/preempted'
+        headers = {'Metadata-Flavor': 'Google'}
+        while True:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200 and response.text == 'TRUE':
+                send_telegram('⚠️ Google is reclaiming the VM. Offline in 30 seconds!')
+                time.sleep(60) 
+            time.sleep(5)
+
+    if __name__ == '__main__':
+        check_preemption()
+    ```
+3.  **Start with PM2:**
     ```bash
-    pnpm openclaw pairing approve vcontrol-ui [YOUR_REQUEST_ID]
+    pm2 start ~/preempt_monitor.py --name preempt-monitor --interpreter python3
     ```
 
----
+### 9.2 Heartbeat Restarter (Cloud Scheduler)
+To ensure the VM stays on during the day, we use **Cloud Scheduler** to press the "Start" button for us every 15 minutes.
 
-## Step 8: Automated Schedule
-
-To stay under the ten dollar credit limit, you should turn your VM off when you aren't using it (example: while you sleep).
-
-Run this on your local computer terminal (replacing the timezone with your own):
-
+Run this on your **local computer terminal**:
 ```bash
-gcloud compute resource-policies create instance-schedule daily-agent-schedule \
-    --region=us-central1 \
-    --vm-start-schedule="0 9 * * *" \
-    --vm-stop-schedule="0 22 * * *" \
-    --timezone="[YOUR_TIMEZONE]"
-
-gcloud compute instances add-resource-policies openclaw-agent \
-    --resource-policies=daily-agent-schedule --zone=us-central1-a
+gcloud scheduler jobs create http openclaw-heartbeat \
+    --project=[YOUR_PROJECT_ID] \
+    --location=us-central1 \
+    --schedule="*/15 9-21 * * *" \
+    --time-zone="[YOUR_TIMEZONE]" \
+    --uri="https://compute.googleapis.com/compute/v1/projects/[YOUR_PROJECT_ID]/zones/us-central1-a/instances/openclaw-agent/start" \
+    --http-method=POST \
+    --oauth-service-account-email="[YOUR_PROJECT_NUMBER]-compute@developer.gserviceaccount.com"
 ```
-
-Note: Use a valid IANA timezone string (example: `Asia/Kolkata`, `America/New_York`, `UTC`). You can find a full list on Wikipedia.
+*Note: This job checks your VM every 15 minutes during the day and turns it on only if it was stopped.*
 
 ---
-
-## Monthly Cost Estimate
+ (24/7 Uptime)
 
 | Item | Cost |
 | :--- | :--- |
-| Compute (Spot) | roughly 1.40 dollars |
-| Storage (20GB) | roughly 2.00 dollars |
-| AI (Gemini 2.5 Flash) | roughly 3.00 dollars |
-| Total | **roughly 6.40 dollars** |
+| Compute (Spot e2-small) | ~$1.40 |
+| Storage (20GB) | ~$2.00 |
+| AI (Gemini 2.5 Flash) | ~$5.00 |
+| Total | **~$8.40** |
+
+By using Spot instances and free credits, you can run a state-of-the-art AI agent for effectively zero dollars out-of-pocket, with a significant buffer for heavy usage.
+

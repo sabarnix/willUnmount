@@ -253,7 +253,63 @@ gcloud compute instances add-resource-policies openclaw-agent \
 
 ---
 
-## **Monthly Cost Estimate**
+## **Step 9: Resilience (Alerts & Auto-Restart)**
+
+Since we are using **Spot Instances**, Google might take your VM back during the day. We can automate the "Restart" button and set up alerts so you never stay offline for long.
+
+### **9.1 Preemption Monitor (Telegram Alerts)**
+This script runs in the background and listens for Google's "30-second warning." It will send you a Telegram message before the VM shuts down.
+
+1.  **Create the script:** `nano ~/preempt_monitor.py`
+2.  **Paste this code:**
+    ```python
+    import requests
+    import time
+    import os
+    from dotenv import load_dotenv
+
+    load_dotenv('/home/[YOUR_USER]/openclaw/.env')
+    TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+    CHAT_ID = '[YOUR_CHAT_ID]'
+
+    def send_telegram(message):
+        url = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
+        requests.post(url, json={'chat_id': CHAT_ID, 'text': message})
+
+    def check_preemption():
+        url = 'http://metadata.google.internal/computeMetadata/v1/instance/preempted'
+        headers = {'Metadata-Flavor': 'Google'}
+        while True:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200 and response.text == 'TRUE':
+                send_telegram('⚠️ Google is reclaiming the VM. Offline in 30 seconds!')
+                time.sleep(60) 
+            time.sleep(5)
+
+    if __name__ == '__main__':
+        check_preemption()
+    ```
+3.  **Start with PM2:**
+    ```bash
+    pm2 start ~/preempt_monitor.py --name preempt-monitor --interpreter python3
+    ```
+
+### **9.2 Heartbeat Restarter (Cloud Scheduler)**
+To ensure the VM stays on during the day, we use **Cloud Scheduler** to press the "Start" button for us every 15 minutes.
+
+Run this on your **local computer terminal**:
+```bash
+gcloud scheduler jobs create http openclaw-heartbeat \
+    --project=[YOUR_PROJECT_ID] \
+    --location=us-central1 \
+    --schedule="*/15 9-21 * * *" \
+    --time-zone="[YOUR_TIMEZONE]" \
+    --uri="https://compute.googleapis.com/compute/v1/projects/[YOUR_PROJECT_ID]/zones/us-central1-a/instances/openclaw-agent/start" \
+    --http-method=POST \
+    --oauth-service-account-email="[YOUR_PROJECT_NUMBER]-compute@developer.gserviceaccount.com"
+```
+
+---
 | Item | Cost |
 | :--- | :--- |
 | **Compute (Spot)** | ~$1.40 (13h/day) |
