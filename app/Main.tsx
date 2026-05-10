@@ -34,7 +34,7 @@ export default function Home({ posts }) {
             </RoughNotation>
             in between. Have a good read!
           </p>
-          <p className="hidden pt-10 text-lg leading-7 text-slate-600 dark:text-slate-300 md:block">
+          <div className="hidden pt-10 text-lg leading-7 text-slate-600 dark:text-slate-300 md:block">
             This is my place for{' '}
             <RoughNotation
               animate
@@ -58,7 +58,7 @@ export default function Home({ posts }) {
               </span>{' '}
               <span className="text-sm">to start</span>
             </div>
-          </p>
+          </div>
         </div>
       </div>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
