@@ -266,25 +266,52 @@ This script runs in the background and listens for Google's "30-second warning."
     import requests
     import time
     import os
-    from dotenv import load_dotenv
+    import json
 
-    load_dotenv('/home/[YOUR_USER]/openclaw/.env')
-    TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-    CHAT_ID = '[YOUR_CHAT_ID]'
+    def get_config():
+        try:
+            with open(os.path.expanduser('~/.openclaw/openclaw.json'), 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f'Error reading config: {e}')
+            return None
 
-    def send_telegram(message):
-        url = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
-        requests.post(url, json={'chat_id': CHAT_ID, 'text': message})
+    def send_telegram(message, token, chat_id):
+        url = f'https://api.telegram.org/bot{token}/sendMessage'
+        try:
+            # Added timeout of 10s to prevent script hang
+            requests.post(url, json={'chat_id': chat_id, 'text': message}, timeout=10)
+        except Exception as e:
+            print(f'Error sending Telegram: {e}')
 
     def check_preemption():
+        config = get_config()
+        if not config:
+            return
+        
+        token = config.get('channels', {}).get('telegram', {}).get('botToken')
+        # Try to get chat ID from config, fallback to placeholder
+        chat_id = config.get('channels', {}).get('telegram', {}).get('chatId', '[YOUR_CHAT_ID]')
+        
+        if not token:
+            print('Error: TELEGRAM_BOT_TOKEN not found')
+            return
+
+        # Google Metadata URL for preemption
         url = 'http://metadata.google.internal/computeMetadata/v1/instance/preempted'
         headers = {'Metadata-Flavor': 'Google'}
+        
         while True:
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200 and response.text == 'TRUE':
-                send_telegram('⚠️ Google is reclaiming the VM. Offline in 30 seconds!')
-                time.sleep(60) 
-            time.sleep(5)
+            try:
+                # Added timeout of 5s for the internal metadata service
+                response = requests.get(url, headers=headers, timeout=5)
+                if response.status_code == 200 and response.text == 'TRUE':
+                    send_telegram('⚠️ Google is reclaiming the VM. Offline in 30 seconds!', token, chat_id)
+                    time.sleep(60) 
+                else:
+                    time.sleep(5)
+            except Exception as e:
+                time.sleep(10)
 
     if __name__ == '__main__':
         check_preemption()
