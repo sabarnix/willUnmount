@@ -1,0 +1,46 @@
+# My Coorg Adventure: A Road Trip from Whitefield
+
+There’s something about a long drive that just clears the head, isn't there? As a frontend developer, my days usually revolve around pixels, flexbox, and staring at documentation. So, when the chance to escape the Whitefield bustle for Coorg—the 'Scotland of India'—popped up from May 1st to May 3rd, I didn't think twice.
+
+### The Drive: Leaving the Grid Behind
+
+We hit the road early. There’s a specific kind of quiet in Bangalore before the city wakes up, and driving through it felt like hitting a reset button. The route from Whitefield to Coorg is a mix of highway stretches and winding roads that demand your attention.
+
+![Placeholder: Photo of the car at a scenic spot on the highway]
+
+By the time the concrete skyline gave way to greenery, the shift in mood was palpable. We stopped for coffee somewhere along the way—nothing fancy, just strong South Indian filter coffee that hits differently when you’re on the road.
+
+### Madikeri Charm
+
+We checked into Hotel Emora Keys in Madikeri, which was the perfect basecamp. We spent our first afternoon at the Madikeri Fort, wandering around and trying to piece together the history. But the real highlight? Raja’s Seat. 
+
+![Placeholder: Sunset view from Raja's Seat]
+
+Watching the sun dip below the hills was one of those moments that makes you stop and actually breathe. Dinner that night was our first proper Coorgi meal—pandi curry with kadambuttu (steamed rice balls). I’m still thinking about the spices.
+
+### Coffee Trails and Nature
+
+Day two was all about getting closer to the earth. Abbey Falls was roaring, a reminder of how powerful nature is when it’s not contained by city infrastructure. 
+
+![Placeholder: Abbey Falls view]
+
+Walking through a coffee plantation was surprisingly grounding. It’s wild to think about the journey a coffee bean takes before it ends up in the espresso machine on my desk. We took our time, breathing in the scent of damp earth and roasting coffee.
+
+![Placeholder: Walking through a coffee plantation]
+
+### Farewell, Coorg
+
+Our last day felt like a blur. We visited the Golden Temple at Bylakuppe, which was incredibly serene—the scale of the statues and the quiet devotion of the monks made for a sharp contrast to the digital noise I'm used to.
+
+![Placeholder: View of the Golden Temple at Bylakuppe]
+
+The drive back to Whitefield was bittersweet. Coorg felt like a different world, one where the biggest problem isn't a broken build but which winding path to take next.
+
+### Some Takeaways
+
+If you're planning this trip:
+*   **Start early:** Trust me, Bangalore traffic will wait for no one.
+*   **Be flexible:** The best moments usually happen when you stop for a view you didn't plan for.
+*   **Eat local:** Don’t stick to standard menus. Try the local specialties; they're the highlight of the trip.
+
+Coorg left me feeling a lot more balanced than when I left. I think everyone needs a reminder now and then that life exists outside the IDE. If you need a break, this is the place.
