@@ -10,37 +10,33 @@ images: ['/static/images/banner-context-optimisation.png']
 
 Two years ago, I started using AI IDEs like Cursor for small, contained problems. It was a neat trick: I’d paste a function, ask for a tweak, and get a result. Simple.
 
-A year later, I was using it for full sprint tasks. I felt productive, but I was also spending half my day reviewing the AI’s output, tweaking its logic, and questioning if it actually understood the architecture. The trust wasn't there yet.
-
-Today, I can hand over most high-level tasks. The difference hasn't just been in the model's capabilities—it’s been in how I provide context.
+A year later, I was using it for full sprint tasks. It felt natural—like we were evolving together. AI models got smarter, and we all collectively got better at offloading larger, more complex architectural tasks to them. But that progress brought its own set of problems.
 
 ### The Context Trap
 
-I learned this the hard way. I kept adding more "stuff" into the AI’s rules and `.mdc` files, component patterns, and API docs. I thought, *if I just give it more context, it’ll be smarter.* 
+Even with the smartest models, I hit a wall recently. I realized I was forcing my agent to handle increasingly broad tasks without giving it a clear foundation. My solution? I tried to dump everything into its context—every rule, every pattern, every piece of documentation.
+
+I thought, *if I just give it more context, it’ll be smarter.* 
 
 It wasn't.
 
-It started acting up. It would hallucinate patterns that didn't exist or get bogged down in outdated versions of our component library. I kept ignoring the context token counter. I just kept pushing more data in, assuming "more = better."
+A few weeks ago, I noticed my agent started hallucinating. It was getting bogged down in outdated patterns and ignoring the core architecture I was trying to build. I kept pushing more data in, assuming the "more = better" rule applied. It wasn't being lazy; it was drowning in the noise I was creating.
 
-The real problem was that I was forcing the AI to process the *whole* file or directory every time I asked a question. It was drowning in information. It wasn't being lazy; it was being overwhelmed by noise. 
+### The Real Lesson: Optimise, Don't Dump
 
-![The Context Trap](/static/images/context-trap.png)
+I finally realized that even the most capable models need structure. I had been ignoring my own rulebook: skills and rules need to be optimised, not just accumulated.
 
-### The "50% Rule"
+I stopped dumping every single file into the context window. Instead, I went back and refined my skill definitions—focusing only on the interface signatures, the core usage patterns, and the "why" behind the code. I tightened the context, culled the outdated rules, and focused on what was actually relevant to the current task.
 
-I realized that AI works best when the context window is used for strict relevance, not for dumping a whole library. You don't need to give it everything. You need to give it *just enough* to anchor it to the problem at hand.
-
-When I started building a new skill rule for our component library, I stopped dumping every single component file into the context. Instead, I created a focused definition: just the interface signatures, the usage patterns, and the "why." 
-
-Once I stopped overfeeding it, the results became significantly sharper.
+The result? The hallucinations stopped, and the agent’s output became significantly sharper. 
 
 ### Why This Matters
 
-We often blame the model when things go wrong, but usually, it's our input that’s the bottleneck. If your AI agent is giving you generic, shallow answers, look at what you’re feeding it. Are you dumping 20 files into the chat? Are you giving it legacy code alongside new architecture? 
+Trust isn't just about the models getting better. It's about you becoming a better editor of the context you provide. 
 
-Trust isn't just about the model getting better. It's about you becoming a better editor of the context you provide.
+If your AI agent is giving you shallow answers, don't blame the model immediately. Look at what you’re feeding it. Are you dumping 20 files into the chat? Are you giving it legacy code alongside new architecture? 
 
-The goal is to get the model to a place where it understands your intent without being forced to sift through a haystack. When you get that balance right, it finally feels like you're working with a second brain, rather than a glorified copy-paste machine.
+The goal is to help the model understand your intent without forcing it to sift through a haystack. When you get that balance right, it feels like you're working with a second brain, rather than a glorified copy-paste machine.
 
 ![Clean Context Optimisation](/static/images/clean-context.png)
 
