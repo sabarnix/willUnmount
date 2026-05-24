@@ -1,26 +1,26 @@
 ---
 title: 'The Context Trap – Why Less is Often More'
-date: '2024-05-22'
+date: '2026-05-24'
 tags: ['AI', 'Productivity', 'Coding']
-summary: 'Why providing too much context to AI coding tools can actually degrade the quality of the output.'
+summary: 'I learned the hard way that feeding an AI every scrap of documentation doesn''t make it smarter—it just makes it hallucinate.'
 images: ['/static/images/banner-context-optimisation.png']
 ---
 
 # From Small Fixes to Big Architecture: Lessons in Skill Context Optimisation
 
-Two years ago, I started using AI IDEs like Cursor to help me solve small, contained problems. It was a neat trick—I’d paste a function, ask for a tweak, and get a result. Simple.
+Two years ago, I started using AI IDEs like Cursor for small, contained problems. It was a neat trick: I’d paste a function, ask for a tweak, and get a result. Simple.
 
-A year later, I was using it for full sprint tasks. I felt productive, but I was also spending half my day reviewing the AI’s output, tweaking its logic, and questioning if it actually understood the underlying architecture. The trust wasn't there yet.
+A year later, I was using it for full sprint tasks. I felt productive, but I was also spending half my day reviewing the AI’s output, tweaking its logic, and questioning if it actually understood the architecture. The trust wasn't there yet.
 
-Today? I can hand over most high-level tasks. The difference hasn't just been in the model's capabilities—it’s been in how I provide context.
+Today, I can hand over most high-level tasks. The difference hasn't just been in the model's capabilities—it’s been in how I provide context.
 
 ### The Context Trap
 
-I learned this the hard way. I kept adding more "stuff" into the AI’s rules and `.mdc` files (Cursor's markdown-based context definitions), component patterns, and API docs. I thought, *if I just give it more context, it’ll be smarter.* 
+I learned this the hard way. I kept adding more "stuff" into the AI’s rules and `.mdc` files, component patterns, and API docs. I thought, *if I just give it more context, it’ll be smarter.* 
 
 It wasn't.
 
-It started to act up. It would hallucinate patterns that didn't exist or get bogged down in outdated versions of our component library. I kept ignoring the context token counter at the bottom of the chat window. I just kept pushing more data in, assuming the "more = better" rule applied.
+It started acting up. It would hallucinate patterns that didn't exist or get bogged down in outdated versions of our component library. I kept ignoring the context token counter. I just kept pushing more data in, assuming "more = better."
 
 The real problem was that I was forcing the AI to process the *whole* file or directory every time I asked a question. It was drowning in information. It wasn't being lazy; it was being overwhelmed by noise. 
 
@@ -30,16 +30,13 @@ The real problem was that I was forcing the AI to process the *whole* file or di
 
 I realized that AI works best when the context window is used for strict relevance, not for dumping a whole library. You don't need to give it everything. You need to give it *just enough* to anchor it to the problem at hand.
 
-When I started building a new skill rule for our component library, I stopped dumping every single component file into the `.mdc` context. Instead, I created a focused context definition—just the interface signatures, the usage patterns, and the "why." 
+When I started building a new skill rule for our component library, I stopped dumping every single component file into the context. Instead, I created a focused definition: just the interface signatures, the usage patterns, and the "why." 
 
 Once I stopped overfeeding it, the results became significantly sharper.
 
 ### Why This Matters
 
-We often blame the model when things go wrong, but usually, it's our input that’s the bottleneck. If your AI agent is giving you generic, shallow answers, look at what you’re feeding it. 
-
-* Are you dumping 20 files into the chat? 
-* Are you giving it legacy code alongside new architecture? 
+We often blame the model when things go wrong, but usually, it's our input that’s the bottleneck. If your AI agent is giving you generic, shallow answers, look at what you’re feeding it. Are you dumping 20 files into the chat? Are you giving it legacy code alongside new architecture? 
 
 Trust isn't just about the model getting better. It's about you becoming a better editor of the context you provide.
 
@@ -51,4 +48,4 @@ Moving from dumping context to *optimising* it was the quiet revolution in my wo
 
 ---
 
-*I'm curious—what’s the biggest "AI-ism" you’ve had to break in your own workflow lately? Let me know.*
+*What’s the biggest "AI-ism" you’ve had to break in your own workflow lately? Let me know.*
