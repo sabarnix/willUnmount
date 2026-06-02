@@ -270,7 +270,7 @@ To protect your agent's configuration and memory, you should set up a daily snap
 Run this on your **local computer terminal**:
 
 ```bash
-# 1. Create the snapshot schedule
+# 1. Create the snapshot schedule (Note: start-time is in UTC)
 gcloud compute resource-policies create snapshot-schedule openclaw-backup-schedule \
     --region=us-central1 \
     --max-retention-days=7 \
@@ -283,7 +283,7 @@ gcloud compute disks add-resource-policies openclaw-agent \
     --zone=us-central1-a
 ```
 
-*Note: GCP's free tier includes 5GB of snapshot storage, which is more than enough for a standard OpenClaw installation.*
+*Note: The `--start-time` parameter is in UTC (24-hour format) and must be specified on the hour. GCP's free tier includes 5GB of standard snapshot storage. Since snapshot storage is incremental, this is usually sufficient for a lean OpenClaw installation, but you should monitor your usage as high disk activity can cause snapshots to exceed the free threshold.*
 
 ---
  (24/7 Uptime)
