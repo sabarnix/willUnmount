@@ -1,46 +1,42 @@
 ---
 title: 'The Context Trap – Why Less is Often More'
-date: '2026-05-24'
+date: '2026-06-02'
 tags: ['AI', 'Productivity', 'Coding']
-summary: 'I learned the hard way that feeding an AI every scrap of documentation doesn''t make it smarter—it just makes it hallucinate.'
+summary: 'Stop dumping your entire project into your AI context. It’s not making you smarter; it’s drowning your model in noise.'
 images: ['/static/images/banner-context-optimisation.png']
 ---
 
-# From Small Fixes to Big Architecture: Lessons in Skill Context Optimisation
+![Context Size Indicator](/static/images/banner-context-optimisation.png)
 
-Two years ago, I started using AI IDEs like Cursor for small, contained problems. It was a neat trick: I’d paste a function, ask for a tweak, and get a result. Simple.
+# The Context Trap: Why Less is Often More
 
-A year later, I was using it for full sprint tasks. It felt natural—like we were evolving together. AI models got smarter, and we all collectively got better at offloading larger, more complex architectural tasks to them. But that progress brought its own set of problems.
+Two years ago, AI IDEs were perfect for quick, local fixes. Today, we're offloading entire sprint tasks, and that shift has birthed a bad habit: the "context dump." We have this nagging feeling that if we shove every file in the repo into the chat window, the agent will somehow "get" our architecture.
 
-### The Context Trap
+It doesn’t. It just gets loud, hallucinates more, and slows down.
 
-Even with the smartest models, I hit a wall recently. I realized I was forcing my agent to handle increasingly broad tasks without giving it a clear foundation. My solution? I tried to dump everything into its context—every rule, every pattern, every piece of documentation.
+### Precision over volume
 
-I thought, *if I just give it more context, it’ll be smarter.* 
+The worst offender is how we handle component libraries.
 
-It wasn't.
+The sloppy way: Dumping the entire `/components` folder into the chat. Now, the model has to burn tokens parsing 50 unrelated files, messy legacy CSS, and redundant utilities. It loses the signal.
 
-A few weeks ago, I noticed my agent started hallucinating. It was getting bogged down in outdated patterns and ignoring the core architecture I was trying to build. I kept pushing more data in, assuming the "more = better" rule applied. It wasn't being lazy; it was drowning in the noise I was creating.
+The surgical way:
+*   Only feed it the interface definitions for the components you're actually calling.
+*   Use `grep` or your IDE's search to extract specific `cva` or style definitions.
 
-### The Real Lesson: Optimise, Don't Dump
+When you hand the model the exact interface and style constraints, you’re giving it the source of truth without the haystack. It’s cleaner, faster, and much more accurate.
 
-I finally realized that even the most capable models need structure. I had been ignoring my own rulebook: skills and rules need to be optimised, not just accumulated.
+### Delegate, don't dump
 
-I stopped dumping every single file into the context window. Instead, I went back and refined my skill definitions—focusing only on the interface signatures, the core usage patterns, and the "why" behind the code. I tightened the context, culled the outdated rules, and focused on what was actually relevant to the current task.
+Stop trying to force one session to handle your whole codebase. When you’re building something complex—like a multi-step auth flow—don't try to cram the entire system into your main chat context.
 
-The result? The hallucinations stopped, and the agent’s output became significantly sharper. 
+Delegate. Fire up a separate sub-agent with its own isolated context. By offloading a scoped slice of the task, you keep your main session lean. Let the main agent handle the architecture while the sub-agent sweats the implementation details of that specific feature.
 
-### Why This Matters
+### Why this matters
 
-Trust isn't just about the models getting better. It's about you becoming a better editor of the context you provide. 
+Getting better results from AI isn't about using a bigger context window; it's about being a better editor. If the AI is giving you shallow, generic code, stop blaming the model. Look at what you're feeding it.
 
-If your AI agent is giving you shallow answers, don't blame the model immediately. Look at what you’re feeding it. Are you dumping 20 files into the chat? Are you giving it legacy code alongside new architecture? 
-
-The goal is to help the model understand your intent without forcing it to sift through a haystack. When you get that balance right, it feels like you're working with a second brain, rather than a glorified copy-paste machine.
-
-![Clean Context Optimisation](/static/images/clean-context.png)
-
-Moving from dumping context to *optimising* it was the quiet revolution in my workflow. Maybe it’s time you checked your context window, too. 
+The goal isn't to dump a mountain of documentation; it's to pass the *right* signal. Once you start pruning your context, you stop wrestling with a glorified search-and-replace machine and start working with a partner that actually understands the "why" of your code.
 
 ---
 
