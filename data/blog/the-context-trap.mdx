@@ -2,40 +2,104 @@
 title: 'The Context Trap – Why Less is Often More'
 date: '2026-06-02'
 tags: ['AI', 'Productivity', 'Coding']
-summary: 'Stop dumping your entire project into your AI context. It’s not making you smarter; it’s drowning your model in noise.'
+summary: 'Stop dumping your entire project into your AI context. It doesn’t make the model smarter; it just drowns it in noise.'
 images: ['/static/images/banner-context-optimisation.png']
 ---
 
 ![Context Size Indicator](/static/images/banner-context-optimisation.png)
 
-Two years ago, AI IDEs were perfect for quick, local fixes. Today, we're offloading entire sprint tasks, and that shift has birthed a bad habit: the "context dump." We have this nagging feeling that if we shove every file in the repo into the chat window, the agent will somehow "get" our architecture.
+A couple of years ago, we used AI IDEs for simple, five-line edits. Today, we offload entire tasks, which has built a bad habit: the "context dump." It's that nagging feeling that if we drag our whole repository into the chat window, the model will magically understand our system architecture.
 
-It doesn’t. It just gets loud, hallucinates more, and slows down.
+It won't. It just gets loud, hallucinates, and slows down. 
 
 ### Precision over volume
 
-The worst offender is how we handle component libraries.
+Component libraries are usually where this falls apart. 
 
-The sloppy way: Dumping the entire `/components` folder into the chat. Now, the model has to burn tokens parsing 50 unrelated files, messy legacy CSS, and redundant utilities. It loses the signal.
+Say you want to tweak a button variant inside your main layout. 
 
-The surgical way:
-*   Only feed it the interface definitions for the components you're actually calling.
-*   Use `grep` or your IDE's search to extract specific `cva` or style definitions.
+**The sloppy way:** Dragging `Button.tsx`, the global CSS file, your Tailwind config, and the parent dashboard layout file into the prompt. 
 
-When you hand the model the exact interface and style constraints, you’re giving it the source of truth without the haystack. It’s cleaner, faster, and much more accurate.
+Now the model has to process hundreds of lines of unrelated configuration, style setups, and layout markup just to change a hover state. It loses the signal. Sometimes, it tries to be "helpful" by cleaning up unrelated areas, which ends up breaking other variants.
+
+**The surgical way:** Pass only the component's interface definitions and local signature.
+
+```tsx
+// This is all the AI actually needs to see:
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(...)
+```
+
+When you feed the model exact interfaces instead of whole directories, you get clean, accurate code instantly.
+
+### The design token trap: Grep is your filter
+
+This gets even more critical when you're enforcing a strict design token system. 
+
+If your project maps semantic tokens to tailwind classes, it's tempting to upload files like `semantics.ts` or `typography.ts` so the AI knows which colors and spacing units to use. Don't do that. It blows up your token count with setup boilerplate.
+
+Instead, teach your AI to query a flat, auto-generated file of CSS variables using targeted commands. For example, instead of reading a 150-line theme file, tell your workspace tools to find background tokens directly:
+
+```bash
+# Verify what bg-* classes exist without opening any files
+grep -n "semantic-bg" src/design-system/semanticVariables.ts
+```
+
+This returns just the lines the AI needs. By serving only the exact variables, your tool stays focused on the design tokens and won't accidentally invent values.
+
+### Component variants: Stop overriding
+
+Another classic context mistake is overriding what a component already owns. If you drag a full UI file into context, the AI might generate inline styles like:
+
+```tsx
+// Sloppy override:
+<Button className="rounded-md bg-brand px-md py-sm font-medium text-white">
+  Save
+</Button>
+```
+
+This is bad form. It bypasses the design token system and leads to style duplication. 
+
+Instead of opening the full component, search for the configuration block (like `cva` definitions) to find existing variants. Read only those 20 lines, choose the correct variant, and restrict your custom classes to layout positioning:
+
+```tsx
+// Surgical variant selection:
+<Button variant="primary">Save</Button>
+
+// Allowed in className (layout positioning only):
+<Button variant="outline" className="mt-md w-full">
+  Cancel
+</Button>
+```
 
 ### Delegate, don't dump
 
-Stop trying to force one session to handle your whole codebase. When you’re building something complex—like a multi-step auth flow—don't try to cram the entire system into your main chat context.
+Trying to handle an entire complex feature in a single session is a recipe for messy code. If you are building a multi-step OTP flow, do not cram the server-side router, the client-side state, and the UI layout into one chat. 
 
-Delegate. Fire up a separate sub-agent with its own isolated context. By offloading a scoped slice of the task, you keep your main session lean. Let the main agent handle the architecture while the sub-agent sweats the implementation details of that specific feature.
+Instead of letting a single chat turn into a 100k-token monolith, break the task up. 
 
-### Why this matters
+Keep your main chat lean for high-level coordination, and spin up a separate sub-agent with its own clean context for the details. For example, give a fresh, isolated sub-agent just the raw OTP input component and a clear brief:
 
-Getting better results from AI isn't about using a bigger context window; it's about being a better editor. If the AI is giving you shallow, generic code, stop blaming the model. Look at what you're feeding it.
+```tsx
+// Input props for the focused sub-agent task:
+interface OTPInputProps {
+  length: number;
+  onChange: (otp: string) => void;
+}
+```
 
-The goal isn't to dump a mountain of documentation; it's to pass the *right* signal. Once you start pruning your context, you stop wrestling with a glorified search-and-replace machine and start working with a partner that actually understands the "why" of your code.
+By isolating the client-side focus state and input handling into a clean session, the sub-agent can write the perfect hook without worrying about your API routes or middleware.
+
+### Focus is a skill
+
+Getting better code from AI isn't about finding models with larger context windows; it's about being a better editor. If your tool keeps giving you shallow, generic responses, look at what you are feeding it. 
+
+We don't need to dump an entire library of documentation on our tools. We just need to pass the right signal. Once you prune your context, you stop wrestling with a glorified search-and-replace engine and start working with a partner that actually writes clean code.
 
 ---
 
-*What’s the biggest "AI-ism" you’ve had to break in your own workflow lately? Let me know.*
+*What's the biggest "AI-ism" you've had to break in your own workflow lately? Let me know.*
