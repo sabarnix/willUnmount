@@ -57,6 +57,8 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "skills",
+    "temp_cli_config.json"
   ]
 }
