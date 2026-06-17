@@ -262,6 +262,30 @@ gcloud scheduler jobs create http openclaw-heartbeat \
 *Note: This job checks your VM every 15 minutes during the day and turns it on only if it was stopped. **Important:** Ensure your service account has the `roles/compute.instanceAdmin` role on the project and the `roles/iam.serviceAccountUser` role on itself for authentication to work.*
 
 ---
+
+## Step 10: Automated Backups (Snapshots)
+
+To protect your agent's configuration and memory, you should set up a daily snapshot schedule. This keeps a rolling 7-day backup of your VM disk.
+
+Run this on your **local computer terminal**:
+
+```bash
+# 1. Create the snapshot schedule (Note: start-time is in UTC)
+gcloud compute resource-policies create snapshot-schedule openclaw-backup-schedule \
+    --region=us-central1 \
+    --max-retention-days=7 \
+    --start-time=22:00 \
+    --daily-schedule
+
+# 2. Attach the schedule to your VM disk
+gcloud compute disks add-resource-policies openclaw-agent \
+    --resource-policies=openclaw-backup-schedule \
+    --zone=us-central1-a
+```
+
+*Note: The `--start-time` parameter is in UTC (24-hour format) and must be specified on the hour. GCP's free tier includes 5GB of standard snapshot storage. Since snapshot storage is incremental, this is usually sufficient for a lean OpenClaw installation, but you should monitor your usage as high disk activity can cause snapshots to exceed the free threshold.*
+
+---
  (24/7 Uptime)
 
 | Item | Cost |
