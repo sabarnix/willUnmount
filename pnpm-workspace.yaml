@@ -1,0 +1,14 @@
+# pnpm 11 no longer reads settings from the "pnpm" field in package.json,
+# and it replaces pnpm 10's `onlyBuiltDependencies` allow-list with an
+# explicit allow/deny decision for every dependency that ships a build script.
+# An undecided package is a hard install error, so all four are listed.
+allowBuilds:
+  # install.js fetches and validates the platform binary; contentlayer
+  # cannot run without it
+  esbuild: true
+  # postinstall
+  contentlayer2: true
+  # scripts/postinstall
+  protobufjs: true
+  # postinstall only prints a funding message
+  es5-ext: false

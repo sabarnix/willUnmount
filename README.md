@@ -181,7 +181,7 @@ npx degit 'timlrx/tailwind-nextjs-starter-blog'
 
 ## Installation
 
-This project uses [pnpm](https://pnpm.io). The pinned version is declared in `package.json` via `packageManager`, so the easiest way to get it is Corepack (bundled with Node.js):
+Requires **Node.js >= 22.13** (pnpm 11's minimum). This project uses [pnpm](https://pnpm.io); the pinned version is declared in `package.json` via `packageManager`, so the easiest way to get it is Corepack (bundled with Node.js):
 
 ```bash
 corepack enable
