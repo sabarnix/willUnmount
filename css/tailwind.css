@@ -1,6 +1,85 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss' source(none);
+
+@source '../node_modules/pliny';
+@source '../app/**/*.{js,ts,jsx,tsx}';
+@source '../components/**/*.{js,ts,tsx}';
+@source '../layouts/**/*.{js,ts,tsx}';
+@source '../data/**/*.mdx';
+
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans:
+    var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+  --color-primary-50: var(--color-pink-50);
+  --color-primary-100: var(--color-pink-100);
+  --color-primary-200: var(--color-pink-200);
+  --color-primary-300: var(--color-pink-300);
+  --color-primary-400: var(--color-pink-400);
+  --color-primary-500: var(--color-pink-500);
+  --color-primary-600: var(--color-pink-600);
+  --color-primary-700: var(--color-pink-700);
+  --color-primary-800: var(--color-pink-800);
+  --color-primary-900: var(--color-pink-900);
+  --color-primary-950: var(--color-pink-950);
+}
+
+/*
+  Tailwind v4 defaults the border color to `currentColor`; v3 used `gray-200`.
+  Preserve the v3 look rather than annotating every bordered element.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+/* Typography plugin customisation (was `theme.extend.typography` in tailwind.config.js). */
+.prose {
+  a {
+    color: var(--color-primary-500);
+    &:hover {
+      color: var(--color-primary-600);
+    }
+    code {
+      color: var(--color-primary-400);
+    }
+  }
+  :where(h1, h2) {
+    font-weight: 700;
+    letter-spacing: var(--tracking-tight);
+  }
+  h3 {
+    font-weight: 600;
+  }
+  code {
+    color: var(--color-indigo-500);
+  }
+}
+
+.prose-invert {
+  a {
+    color: var(--color-primary-500);
+    &:hover {
+      color: var(--color-primary-400);
+    }
+    code {
+      color: var(--color-primary-400);
+    }
+  }
+  :where(h1, h2, h3, h4, h5, h6) {
+    color: var(--color-gray-100);
+  }
+}
 
 .task-list-item::before {
   @apply hidden;
@@ -61,7 +140,7 @@ input:-webkit-autofill:focus {
 
 .nerdy-bg {
   background-color: #e9ecef;
-  background-image: 
+  background-image:
     radial-gradient(circle at 35% 50%, rgba(5, 88, 255, 0.15), rgba(0, 0, 0, 0) 50%),
     radial-gradient(circle at 65% 50%, rgba(128, 0, 74, 0.15), rgba(0, 0, 0, 0) 50%),
     radial-gradient(circle at 50% 65%, rgba(74, 128, 0, 0.15), rgba(0, 0, 0, 0) 50%);
@@ -71,7 +150,7 @@ input:-webkit-autofill:focus {
 
 .dark .nerdy-bg {
   background-color: #030507;
-  background-image: 
+  background-image:
     radial-gradient(circle at 35% 50%, rgba(5, 88, 255, 0.15), rgba(0, 0, 0, 0) 50%),
     radial-gradient(circle at 65% 50%, rgba(128, 0, 74, 0.15), rgba(0, 0, 0, 0) 50%),
     radial-gradient(circle at 50% 65%, rgba(74, 128, 0, 0.15), rgba(0, 0, 0, 0) 50%);
