@@ -1,0 +1,89 @@
+.pl-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.4rem;
+  height: 200px;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid #8884;
+}
+
+.group {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 100%;
+
+  /* Hue comes from the group's position among the quarters. */
+  color: hsl(calc(205 + (sibling-index() - 1) * 55) 55% 45%);
+}
+
+.bar {
+  flex: 1;
+  height: calc(var(--value) * 1%);
+  border-radius: 4px 4px 0 0;
+
+  /* sibling-index() restarts inside each group, so this ramps lightness per series. */
+  background: hsl(from currentColor h s calc(l + (sibling-index() - 1) * 20));
+}
+
+.pl-labels {
+  display: flex;
+  gap: 1.4rem;
+  padding: 0 0.5rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.pl-labels span {
+  flex: 1;
+  text-align: center;
+}
+
+.pl-legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+  padding: 0;
+  margin: 0.8rem 0 0;
+  font-size: 0.85rem;
+}
+
+.pl-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  /* Same formula as .group — the legend can never drift out of sync. */
+  color: hsl(calc(205 + (sibling-index() - 1) * 55) 55% 45%);
+}
+
+.pl-legend .swatch {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+.pl-legend .label {
+  color: #888;
+}
+
+.add-group-btn {
+  margin-top: 0.9rem;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  border: 1px solid #6366f1;
+  background: transparent;
+  color: #6366f1;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-group-btn:hover {
+  background: #6366f111;
+}

@@ -1,0 +1,54 @@
+---
+title: 'Practical use cases for new css properties sibling-index() and sibling-count()'
+date: '2026-08-28'
+tags: ['CSS', 'Frontend']
+draft: false
+summary: Practical use cases for sibling-index() and sibling-count() — a chip list that hides overflow and counts it, and a chart that colors itself by position — no JS, no nth-child pile-up.
+---
+
+## The problem these solve
+
+Anything positional in CSS has always meant fighting `nth-child`. Want the third item colored differently? `:nth-child(3)`. Want an element to know how many siblings it has — "I'm 2 of 7" — so it can react to that? You needed a build-time SCSS loop generating one rule per index, or JS stamping a `--index` custom property onto every child.
+
+`sibling-index()` and `sibling-count()` close that gap. Inside any CSS value, `sibling-index()` returns an element's 1-based position among its siblings and `sibling-count()` returns how many it has — both recompute automatically as children are added or removed. They're part of the CSS Values and Units Module Level 5 draft and landed first in Chromium; check caniuse before shipping this outside a demo.
+
+Here are two practical uses I found for them below: a chip list that hides overflow and counts it, and a chart that colors itself by position — no JS in either.
+
+## Show/hide a chip list after N, with a self-counting overflow label
+
+<Sandbox demo="chips" previewHeight={230} />
+
+Every chip renders up front; a plain `nth-child` rule hides anything past the fifth. The interesting part is the "+N more" label, which counts its own siblings instead of a number baked in by hand or recomputed by JS:
+
+```css
+.chips li.more {
+  counter-reset: overflow-count calc(sibling-count() - 6);
+}
+```
+
+`sibling-count()` includes the `.more` `<li>` itself, so with 5 visible chips plus the toggle the formula is `sibling-count() - 6`. Add a chip through the form and the label updates on its own.
+
+## Auto-generate colors for a chart
+
+<Sandbox demo="sibling-chart" />
+
+A grouped bar chart, colored twice over, with zero explicit color values in the markup:
+
+```css
+.group {
+  color: hsl(calc(205 + (sibling-index() - 1) * 55) 55% 45%);
+}
+.bar {
+  background: hsl(from currentColor h s calc(l + (sibling-index() - 1) * 20));
+}
+```
+
+`.group` picks a hue from its position among the quarters. `sibling-index()` resets inside each group, so `.bar` layers a lightness ramp on top using relative color syntax — series 1 is the darkest shade, series 3 the lightest, in every group. The legend swatches reuse the identical hue formula on a separate list, so a new group and its legend entry can never drift out of sync. Click "Add group" to see it hold up.
+
+One gotcha: piping a `sibling-index()` value through a custom property and into a descendant's `background` froze at the first group's value for me, silently. Setting `color` directly (an inherited property, not `var()`) sidesteps it — which is what both rules above do.
+
+If your browser doesn't support these functions yet, both demos above just render everything at position 1 — graceful degradation, not a bug in the embed.
+
+## Elsewhere this helps
+
+Striped tables on filtered rows, steppers that need their own position and the total, any chart coloring series relative to how many exist — anywhere "the Nth of M" meant reaching for JS, these two functions are worth a look.

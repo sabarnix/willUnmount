@@ -5,6 +5,7 @@ import type { MDXComponents } from 'mdx/types'
 import { Sandpack } from '@codesandbox/sandpack-react'
 import Image from './Image'
 import CustomLink from './Link'
+import Sandbox from './Sandbox'
 import TableWrapper from './TableWrapper'
 
 export const components: MDXComponents = {
@@ -14,5 +15,6 @@ export const components: MDXComponents = {
   pre: Pre,
   table: TableWrapper,
   BlogNewsletterForm,
+  Sandbox,
   Sandpack,
 }

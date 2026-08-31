@@ -1,5 +1,5 @@
 ---
-title: Run an AI Agent for Free using $10 Monthly Google Credits
+title: Run Openclaw for Free using $10 Monthly Google Credits
 date: '2026-04-30'
 tags: ['ai', 'gcp', 'openclaw', 'guide']
 draft: false
@@ -8,7 +8,7 @@ summary: Learn how to host a private, production-grade OpenClaw agent on GCP usi
 
 ![OpenClaw on GCP Banner](/static/images/openclaw_gcp.png)
 
-*Host your own private AI assistant for zero dollars out-of-pocket.*
+_Host your own private AI assistant for zero dollars out-of-pocket._
 
 Google Cloud gives ten dollars in monthly free credits to many developer accounts. This guide shows you how to use those credits to run your own OpenClaw agent.
 
@@ -160,6 +160,7 @@ Initialize your configuration at `~/.openclaw/openclaw.json`:
 ```
 
 Start the gateway:
+
 ```bash
 pm2 start openclaw -- gateway --allow-unconfigured
 pm2 save
@@ -182,10 +183,12 @@ To ensure your custom skills survive core updates, store them in the workspace d
 Since we are using **Spot Instances**, Google might take your VM back during the day. We can automate the "Restart" button and set up alerts so you never stay offline for long.
 
 ### 9.1 Preemption Monitor (Telegram Alerts)
+
 This script runs in the background and listens for Google's "30-second warning." It will send you a Telegram message before the VM shuts down.
 
 1.  **Create the script:** `nano ~/preempt_monitor.py`
 2.  **Paste this code:**
+
     ```python
     import requests
     import time
@@ -211,10 +214,10 @@ This script runs in the background and listens for Google's "30-second warning."
         config = get_config()
         if not config:
             return
-        
+
         token = config.get('channels', {}).get('telegram', {}).get('botToken')
         chat_id = config.get('channels', {}).get('telegram', {}).get('chatId', '[YOUR_CHAT_ID]')
-        
+
         if not token:
             print('Error: TELEGRAM_BOT_TOKEN not found in openclaw.json')
             return
@@ -222,7 +225,7 @@ This script runs in the background and listens for Google's "30-second warning."
         # Google Metadata URL for preemption
         url = 'http://metadata.google.internal/computeMetadata/v1/instance/preempted'
         headers = {'Metadata-Flavor': 'Google'}
-        
+
         print('Preemption monitor started...')
         while True:
             try:
@@ -230,7 +233,7 @@ This script runs in the background and listens for Google's "30-second warning."
                 if response.status_code == 200 and response.text == 'TRUE':
                     print('PREEMPTION DETECTED!')
                     send_telegram('⚠️ Google is reclaiming the VM. Offline in 30 seconds!', token, chat_id)
-                    time.sleep(60) 
+                    time.sleep(60)
                 else:
                     time.sleep(5)
             except Exception as e:
@@ -240,15 +243,18 @@ This script runs in the background and listens for Google's "30-second warning."
     if __name__ == '__main__':
         check_preemption()
     ```
+
 3.  **Start with PM2:**
     ```bash
     pm2 start ~/preempt_monitor.py --name preempt-monitor --interpreter python3
     ```
 
 ### 9.2 Heartbeat Restarter (Cloud Scheduler)
+
 To ensure the VM stays on during the day, we use **Cloud Scheduler** to press the "Start" button for us every 15 minutes.
 
 Run this on your **local computer terminal**:
+
 ```bash
 gcloud scheduler jobs create http openclaw-heartbeat \
     --project=[YOUR_PROJECT_ID] \
@@ -259,17 +265,18 @@ gcloud scheduler jobs create http openclaw-heartbeat \
     --http-method=POST \
     --oauth-service-account-email="[YOUR_PROJECT_NUMBER]-compute@developer.gserviceaccount.com"
 ```
-*Note: This job checks your VM every 15 minutes during the day and turns it on only if it was stopped. **Important:** Ensure your service account has the `roles/compute.instanceAdmin` role on the project and the `roles/iam.serviceAccountUser` role on itself for authentication to work.*
+
+_Note: This job checks your VM every 15 minutes during the day and turns it on only if it was stopped. **Important:** Ensure your service account has the `roles/compute.instanceAdmin` role on the project and the `roles/iam.serviceAccountUser` role on itself for authentication to work._
 
 ---
- (24/7 Uptime)
 
-| Item | Cost |
-| :--- | :--- |
-| Compute (Spot e2-small) | ~$1.40 |
-| Storage (20GB) | ~$2.00 |
-| AI (Gemini 2.5 Flash) | ~$5.00 |
-| Total | **~$8.40** |
+(24/7 Uptime)
+
+| Item                    | Cost       |
+| :---------------------- | :--------- |
+| Compute (Spot e2-small) | ~$1.40     |
+| Storage (20GB)          | ~$2.00     |
+| AI (Gemini 2.5 Flash)   | ~$5.00     |
+| Total                   | **~$8.40** |
 
 By using Spot instances and free credits, you can run a state-of-the-art AI agent for effectively zero dollars out-of-pocket, with a significant buffer for heavy usage.
-
