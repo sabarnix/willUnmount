@@ -219,7 +219,7 @@ Edit the layout in `app` or content in `data`. With live reloading, the pages au
 
 `public/static` - store assets such as images and favicons.
 
-`tailwind.config.js` and `css/tailwind.css` - tailwind configuration and stylesheet which can be modified to change the overall look and feel of the site.
+`css/tailwind.css` - tailwind configuration (Tailwind v4 is configured in CSS via `@theme`/`@plugin`/`@source`) and stylesheet which can be modified to change the overall look and feel of the site.
 
 `css/prism.css` - controls the styles associated with the code blocks. Feel free to customize it and use your preferred prismjs theme e.g. [prism themes](https://github.com/PrismJS/prism-themes).
 

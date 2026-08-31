@@ -46,3 +46,6 @@ yarn-error.log*
 # Contentlayer
 .contentlayer
 .env*.local
+
+# TypeScript incremental build info
+*.tsbuildinfo
