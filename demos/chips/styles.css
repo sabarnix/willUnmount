@@ -1,31 +1,33 @@
 :root {
-  --chip-accent: #6366f1;
-  --chip-radius: 999px;
-  --chip-font-size: 0.85rem;
-  --chip-transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  --accent: #6366f1;
+  --pill: 999px;
+  --chip-font: 0.85rem;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 0.2s;
+
+  /* Chip palette: hue walks with the chip's position in the list. */
+  --hue-base: 210;
+  --hue-step: 32;
+
+  /* How many chips stay visible before the list collapses. */
+  --visible: 5;
 }
 
-.chips-wrap {
-  position: relative;
+/*
+ * Registered so the values below compute to real integers. Unregistered custom
+ * properties stay raw tokens, and a style() query can only compare computed
+ * values — registering is what makes the if() rules further down work.
+ */
+@property --overflowing {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
 }
 
-/* Visually hidden toggle checkbox with full keyboard accessibility */
-.chip-toggle-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-/* Focus ring on the label when toggle checkbox is navigated via keyboard */
-.chip-toggle-input:focus-visible ~ .chips li.more label {
-  outline: 2px solid var(--chip-accent);
-  outline-offset: 2px;
+@property --overflow-count {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
 }
 
 @keyframes chip-pop {
@@ -33,193 +35,206 @@
     opacity: 0;
     transform: scale(0.85) translateY(4px);
   }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+}
+
+.chips-wrap {
+  position: relative;
+}
+
+/* Visually hidden, but still focusable — the label is the visible control. */
+.chip-toggle-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border-width: 0;
+}
+
+.chip-toggle-input:focus-visible ~ .chips li.more label {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .chips {
-  list-style: none;
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
   align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 
   li {
-    position: relative;
+    /* 0 while the chip fits, 1 once it is past the cut-off. */
+    --overflowing: clamp(0, sibling-index() - var(--visible), 1);
+
     display: inline-flex;
+
+    /*
+     * No selector can read sibling-index(), so the count becomes a number and
+     * if() turns that number back into a keyword.
+     */
+    display: if(style(--overflowing: 1): none; else: inline-flex);
+
     align-items: center;
     padding: 0.35rem 0.75rem;
-    border-radius: var(--chip-radius);
-    font-size: var(--chip-font-size);
+    border: 1px solid;
+    border-radius: var(--pill);
+    font-size: var(--chip-font);
     font-weight: 500;
     line-height: 1.2;
-    cursor: default;
     user-select: none;
 
-    /* Fallback base styles for browsers without sibling-* support */
-    background: #33415522;
-    border: 1px solid transparent;
-
-    /* Dynamic hue generated per chip from its sibling-index() */
-    background: hsl(calc(210 + (sibling-index() - 1) * 32) 75% 50% / 0.12);
-    border-color: hsl(calc(210 + (sibling-index() - 1) * 32) 75% 50% / 0.28);
+    /* The one positional value; everything else is derived from it. */
     color: light-dark(
-      hsl(calc(210 + (sibling-index() - 1) * 32) 75% 36%),
-      hsl(calc(210 + (sibling-index() - 1) * 32) 85% 72%)
+      hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) 70% 34%),
+      hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) 80% 72%)
     );
+    background: hsl(from currentColor h s l / 0.12);
+    border-color: hsl(from currentColor h s l / 0.3);
 
-    /* Layering and staggered entrance delay computed via sibling-index() */
+    /* Later chips stack over earlier ones, and enter a beat later. */
     z-index: sibling-index();
-    animation: chip-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: chip-pop 0.25s var(--ease) backwards;
     animation-delay: calc((sibling-index() - 1) * 35ms);
     transition:
-      transform var(--chip-transition),
-      box-shadow var(--chip-transition),
-      background-color var(--chip-transition),
-      border-color var(--chip-transition);
+      transform var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
 
     &:not(.more):hover {
       transform: translateY(-1px) scale(1.02);
       z-index: calc(sibling-count() + 1);
-      box-shadow: 0 4px 12px hsl(calc(210 + (sibling-index() - 1) * 32) 70% 50% / 0.25);
+      box-shadow: 0 4px 12px color-mix(in oklab, currentColor 35%, transparent);
     }
   }
 
-  /* Hide everything past the fifth chip, but never the trailing .more label */
-  li:nth-child(n + 6):not(:last-child) {
-    display: none;
-  }
+  /* The toggle: counts what is hidden, and hides itself when nothing is. */
+  li.more {
+    --overflow-count: max(0, sibling-count() - var(--visible) - 1);
 
-  /* Nothing overflowing yet (<= 5 chips + 1 more item = 6 total children)? Hide .more */
-  &:not(:has(li:nth-child(7))) li.more {
-    display: none;
-  }
-}
-
-/* Expand hidden chips when toggle is checked */
-.chips-wrap:has(.chip-toggle-input:checked) .chips li:nth-child(n + 6):not(:last-child) {
-  display: inline-flex;
-}
-
-/* More/Less toggle item */
-.chips li.more {
-  background: transparent;
-  border: none;
-  padding: 0;
-  animation: none;
-  box-shadow: none;
-
-  /* The label counts overflowing siblings: total sibling-count minus 5 visible chips and itself */
-  counter-reset: overflow-count calc(sibling-count() - 6);
-
-  label {
     display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.75rem;
-    border-radius: var(--chip-radius);
-    color: var(--chip-accent);
-    font-weight: 600;
-    font-size: var(--chip-font-size);
-    cursor: pointer;
-    background: color-mix(in srgb, var(--chip-accent) 8%, transparent);
-    border: 1px dashed color-mix(in srgb, var(--chip-accent) 40%, transparent);
-    transition:
-      background-color var(--chip-transition),
-      border-color var(--chip-transition),
-      transform var(--chip-transition);
+    display: if(style(--overflow-count: 0): none; else: inline-flex);
 
-    &:hover {
-      background: color-mix(in srgb, var(--chip-accent) 16%, transparent);
-      border-color: var(--chip-accent);
-      transform: translateY(-1px);
+    padding: 0;
+    border: none;
+    background: none;
+    animation: none;
+    counter-reset: overflow var(--overflow-count);
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 0.75rem;
+      border: 1px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+      border-radius: var(--pill);
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+      color: var(--accent);
+      font-size: var(--chip-font);
+      font-weight: 600;
+      cursor: pointer;
+      transition:
+        background-color var(--dur) var(--ease),
+        border-color var(--dur) var(--ease),
+        transform var(--dur) var(--ease);
+
+      &:hover {
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
+        transform: translateY(-1px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
     }
 
-    &:active {
-      transform: translateY(0);
+    .show-more::before {
+      content: '+' counter(overflow) ' more';
     }
-  }
 
-  .show-more::before {
-    content: '+' counter(overflow-count) ' more';
-  }
-
-  .show-less {
-    display: none;
+    .show-less {
+      display: none;
+    }
   }
 }
 
-/* Toggle visibility between Show More and Show Less */
-.chips-wrap:has(.chip-toggle-input:checked) .chips li.more {
+/* Expanded: every chip shows, and the label flips to "Show less". */
+.chips-wrap:has(.chip-toggle-input:checked) .chips {
+  li:not(.more) {
+    display: inline-flex;
+  }
+
   .show-more {
     display: none;
   }
+
   .show-less {
     display: inline;
   }
 }
 
-/* Add Tag Form */
 .chip-add {
   display: flex;
   gap: 0.45rem;
   margin-top: 0.85rem;
 
+  input[type='text'],
+  button {
+    padding: 0.35rem 0.9rem;
+    border: 1px solid;
+    border-radius: var(--pill);
+    background: transparent;
+    font: inherit;
+    font-size: var(--chip-font);
+    transition:
+      border-color var(--dur) var(--ease),
+      background-color var(--dur) var(--ease),
+      box-shadow var(--dur) var(--ease);
+  }
+
   input[type='text'] {
     flex: 1;
-    padding: 0.35rem 0.8rem;
-    border: 1px solid #8886;
-    border-radius: var(--chip-radius);
-    background: transparent;
+    border-color: color-mix(in srgb, currentColor 30%, transparent);
     color: inherit;
-    font: inherit;
-    font-size: var(--chip-font-size);
-    transition:
-      border-color var(--chip-transition),
-      box-shadow var(--chip-transition);
 
     &::placeholder {
-      color: #8888;
+      color: color-mix(in srgb, currentColor 45%, transparent);
     }
 
     &:focus-visible {
       outline: none;
-      border-color: var(--chip-accent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip-accent) 25%, transparent);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
     }
   }
 
   button {
-    padding: 0.35rem 0.95rem;
-    border-radius: var(--chip-radius);
-    border: 1px solid var(--chip-accent);
-    background: transparent;
-    color: var(--chip-accent);
-    font: inherit;
-    font-size: var(--chip-font-size);
+    border-color: var(--accent);
+    color: var(--accent);
     font-weight: 600;
     cursor: pointer;
-    transition:
-      background-color var(--chip-transition),
-      color var(--chip-transition),
-      transform var(--chip-transition),
-      box-shadow var(--chip-transition);
 
     &:hover {
-      background: color-mix(in srgb, var(--chip-accent) 12%, transparent);
-      transform: translateY(-1px);
-    }
-
-    &:active {
-      transform: translateY(0);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
     }
 
     &:focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--chip-accent) 30%, transparent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chips li {
+    animation: none;
+  }
+
+  * {
+    transition-duration: 0.01ms;
   }
 }

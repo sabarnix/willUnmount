@@ -3,7 +3,7 @@ title: 'Practical use cases for new css properties sibling-index() and sibling-c
 date: '2026-08-28'
 tags: ['CSS', 'Frontend']
 draft: false
-summary: Practical use cases for sibling-index() and sibling-count() — a chip list that hides overflow and counts it, and a chart that colors itself by position — no JS, no nth-child pile-up.
+summary: Practical use cases for sibling-index() and sibling-count() — a chip list that hides overflow and counts it, and a chart that colors and labels itself by position — no JS, no nth-child pile-up.
 ---
 
 ## The problem these solve
@@ -12,42 +12,84 @@ Anything positional in CSS has always meant fighting `nth-child`. Want the third
 
 `sibling-index()` and `sibling-count()` close that gap. Inside any CSS value, `sibling-index()` returns an element's 1-based position among its siblings and `sibling-count()` returns how many it has — both recompute automatically as children are added or removed. They're part of the CSS Values and Units Module Level 5 draft and landed first in Chromium; check caniuse before shipping this outside a demo.
 
-Here are two practical uses I found for them below: a chip list that hides overflow and counts it, and a chart that colors itself by position — no JS in either.
+Here are two practical uses I found for them below: a chip list that hides overflow and counts it, and a chart that colors and labels itself by position — no JS driving either.
 
 ## Show/hide a chip list after N, with a self-counting overflow label
 
-<Sandbox demo="chips" previewHeight={230} />
+<Sandbox demo="chips" previewHeight={260} />
 
-Every chip renders up front; a plain `nth-child` rule hides anything past the fifth. The interesting part is the "+N more" label, which counts its own siblings instead of a number baked in by hand or recomputed by JS:
+Every chip renders up front. The chip's own position decides whether it survives:
 
 ```css
-.chips li.more {
-  counter-reset: overflow-count calc(sibling-count() - 6);
+.chips li {
+  /* 0 while the chip fits, 1 once it is past the cut-off. */
+  --overflowing: clamp(0, sibling-index() - var(--visible), 1);
+
+  display: inline-flex;
+  display: if(style(--overflowing: 1): none; else: inline-flex);
 }
 ```
 
-`sibling-count()` includes the `.more` `<li>` itself, so with 5 visible chips plus the toggle the formula is `sibling-count() - 6`. Add a chip through the form and the label updates on its own.
+This is the awkward seam in the whole feature: `sibling-index()` is a _value_ function, so no selector can read it. `nth-child` is still the only way to match on position — but you don't have to match at all. Turn the position into a number, then let [`if()`](https://developer.chrome.com/blog/if-article) turn that number back into a keyword. The cut-off lives in one custom property instead of being baked into a selector, so changing five to eight is a one-token edit.
 
-## Auto-generate colors for a chart
+Two things make that work. `--overflowing` is registered with `@property` as an `<integer>`, because a `style()` query compares _computed_ values and an unregistered property would still be the literal text `clamp(0, sibling-index() …)`. And the bare `display: inline-flex` above it is the fallback: a browser without `if()` drops the second declaration and shows every chip.
 
-<Sandbox demo="sibling-chart" />
+The "+N more" label counts its own siblings rather than carrying a number baked in by hand or recomputed by JS — and disappears on the same principle when the count reaches zero:
 
-A grouped bar chart, colored twice over, with zero explicit color values in the markup:
+```css
+.chips li.more {
+  --overflow-count: max(0, sibling-count() - var(--visible) - 1);
+
+  display: inline-flex;
+  display: if(style(--overflow-count: 0): none; else: inline-flex);
+
+  counter-reset: overflow var(--overflow-count);
+}
+
+.chips li.more .show-more::before {
+  content: '+' counter(overflow) ' more';
+}
+```
+
+`sibling-count()` includes the `.more` `<li>` itself, hence the extra `- 1`. Add a chip through the form and the label, the cut-off, and the count all move together.
+
+The chips also lean on `sibling-index()` for the things it's least fussy about — `z-index: sibling-index()` so later chips stack over earlier ones, and `animation-delay: calc((sibling-index() - 1) * 35ms)` for the stagger on entry.
+
+## Auto-generate colors and labels for a chart
+
+<Sandbox demo="sibling-chart" previewHeight={420} />
+
+A grouped bar chart with no color and no axis label anywhere in the markup:
 
 ```css
 .group {
-  color: hsl(calc(205 + (sibling-index() - 1) * 55) 55% 45%);
+  color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
+  counter-reset: quarter sibling-index();
+
+  &::after {
+    content: 'Q' counter(quarter);
+  }
 }
+
 .bar {
   background: hsl(from currentColor h s calc(l + (sibling-index() - 1) * 20));
 }
 ```
 
-`.group` picks a hue from its position among the quarters. `sibling-index()` resets inside each group, so `.bar` layers a lightness ramp on top using relative color syntax — series 1 is the darkest shade, series 3 the lightest, in every group. The legend swatches reuse the identical hue formula on a separate list, so a new group and its legend entry can never drift out of sync. Click "Add group" to see it hold up.
+`.group` picks a hue from its position among the quarters and names itself from the same number. `sibling-index()` resets inside each group, so `.bar` layers a lightness ramp on top using relative color syntax — series 1 is the darkest shade, series 3 the lightest, in every group. The legend reuses both formulas on a separate list, so a new group and its legend entry can never drift out of sync.
 
-One gotcha: piping a `sibling-index()` value through a custom property and into a descendant's `background` froze at the first group's value for me, silently. Setting `color` directly (an inherited property, not `var()`) sidesteps it — which is what both rules above do.
+Because only the constants come from custom properties, the whole palette is one `setProperty` call away from changing. That's the Randomize button:
 
-If your browser doesn't support these functions yet, both demos above just render everything at position 1 — graceful degradation, not a bug in the embed.
+```js
+chart.style.setProperty('--hue-base', Math.floor(Math.random() * 360))
+chart.style.setProperty('--saturation', `${Math.floor(Math.random() * 45) + 40}%`)
+```
+
+Both are registered with `@property`, so `transition: --hue-base 0.5s, --saturation 0.5s` on the container animates the entire chart — bars, axis labels, legend swatches — through the hue wheel together. "Add quarter" appends three bars and an empty `<li>`; JS never picks a color or writes a label.
+
+One gotcha: piping a `sibling-index()` value _through_ a custom property and into a descendant's `background` froze at the first group's value for me, silently. Constants in custom properties are fine — it's the positional value that has to stay inline. Setting `color` directly (an inherited property, not `var()`) and deriving the rest with `from currentColor` sidesteps it, which is what both demos do.
+
+If your browser doesn't support these functions yet, both demos degrade rather than break: every element renders at position 1, and the chip list simply shows all its chips.
 
 ## Elsewhere this helps
 

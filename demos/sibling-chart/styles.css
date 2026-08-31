@@ -1,13 +1,47 @@
-.pl-chart {
+/*
+ * Registered so the palette can be transitioned when the values change, and so
+ * `--saturation` stays a real percentage rather than a raw token.
+ */
+@property --hue-base {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 205;
+}
+
+@property --saturation {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 55%;
+}
+
+.chart {
+  /* The knobs the Randomize button turns. Everything below inherits them. */
+  --hue-base: 205;
+  --hue-step: 55;
+  --saturation: 55%;
+
+  /* CanvasText follows the iframe's color-scheme, so these hold up in both themes. */
+  --muted: color-mix(in srgb, CanvasText 60%, transparent);
+  --rule: color-mix(in srgb, CanvasText 25%, transparent);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  transition:
+    --hue-base 0.5s var(--ease),
+    --saturation 0.5s var(--ease);
+}
+
+.chart__plot {
   display: flex;
   align-items: flex-end;
   gap: 1.4rem;
   height: 200px;
+  margin-bottom: 1.9rem;
   padding: 0 0.5rem;
-  border-bottom: 1px solid #8884;
+  border-bottom: 1px solid var(--rule);
 }
 
 .group {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: flex-end;
@@ -15,7 +49,20 @@
   height: 100%;
 
   /* Hue comes from the group's position among the quarters. */
-  color: hsl(calc(205 + (sibling-index() - 1) * 55) 55% 45%);
+  color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
+
+  /* The axis label counts itself, so it can never disagree with the bars. */
+  counter-reset: quarter sibling-index();
+
+  &::after {
+    content: 'Q' counter(quarter);
+    position: absolute;
+    inset: 100% 0 auto;
+    padding-top: 0.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
 }
 
 .bar {
@@ -27,63 +74,65 @@
   background: hsl(from currentColor h s calc(l + (sibling-index() - 1) * 20));
 }
 
-.pl-labels {
-  display: flex;
-  gap: 1.4rem;
-  padding: 0 0.5rem;
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: #888;
-}
-
-.pl-labels span {
-  flex: 1;
-  text-align: center;
-}
-
-.pl-legend {
-  list-style: none;
+.chart__legend {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem 1.1rem;
+  margin: 0;
   padding: 0;
-  margin: 0.8rem 0 0;
   font-size: 0.85rem;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    /* Same two formulas as .group — the legend cannot drift out of sync. */
+    color: hsl(
+      calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%
+    );
+    counter-reset: quarter sibling-index();
+
+    &::after {
+      content: 'Q' counter(quarter);
+      color: var(--muted);
+    }
+  }
+
+  .swatch {
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
 }
 
-.pl-legend li {
+.chart__actions {
   display: flex;
-  align-items: center;
-  gap: 0.45rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
 
-  /* Same formula as .group — the legend can never drift out of sync. */
-  color: hsl(calc(205 + (sibling-index() - 1) * 55) 55% 45%);
-}
+  button {
+    padding: 0.35rem 1rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    background: transparent;
+    color: #6366f1;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s var(--ease);
 
-.pl-legend .swatch {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 50%;
-  background: currentColor;
-  flex: none;
-}
+    &:hover {
+      background: color-mix(in srgb, currentColor 12%, transparent);
+    }
 
-.pl-legend .label {
-  color: #888;
-}
-
-.add-group-btn {
-  margin-top: 0.9rem;
-  padding: 0.35rem 1rem;
-  border-radius: 999px;
-  border: 1px solid #6366f1;
-  background: transparent;
-  color: #6366f1;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.add-group-btn:hover {
-  background: #6366f111;
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
 }

@@ -1,8 +1,10 @@
-document.getElementById('add-group-btn').addEventListener('click', () => {
-  const chart = document.getElementById('pl-chart')
-  const labels = document.getElementById('pl-labels')
-  const legend = document.getElementById('pl-legend')
+const chart = document.getElementById('chart')
+const plot = document.getElementById('chart-plot')
+const legend = document.getElementById('chart-legend')
 
+/* Neither handler touches a colour or a label — CSS derives both from position. */
+
+document.getElementById('add-group').addEventListener('click', () => {
   const group = document.createElement('div')
   group.className = 'group'
 
@@ -10,18 +12,14 @@ document.getElementById('add-group-btn').addEventListener('click', () => {
     const bar = document.createElement('div')
     bar.className = 'bar'
     bar.style.setProperty('--value', Math.floor(Math.random() * 70) + 10)
-    group.appendChild(bar)
+    group.append(bar)
   }
 
-  chart.appendChild(group)
+  plot.append(group)
+  legend.insertAdjacentHTML('beforeend', '<li><span class="swatch"></span></li>')
+})
 
-  const quarter = `Q${labels.children.length + 1}`
-
-  const label = document.createElement('span')
-  label.textContent = quarter
-  labels.appendChild(label)
-
-  const legendItem = document.createElement('li')
-  legendItem.innerHTML = `<span class="swatch"></span><span class="label">${quarter}</span>`
-  legend.appendChild(legendItem)
+document.getElementById('randomize').addEventListener('click', () => {
+  chart.style.setProperty('--hue-base', Math.floor(Math.random() * 360))
+  chart.style.setProperty('--saturation', `${Math.floor(Math.random() * 45) + 40}%`)
 })
