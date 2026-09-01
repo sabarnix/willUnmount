@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
 import siteMetadata from '@/data/siteMetadata'
@@ -8,6 +11,15 @@ import { RoughNotation } from 'react-rough-notation'
 const MAX_DISPLAY = 5
 
 export default function Home({ posts }) {
+  const [showHighlight, setShowHighlight] = useState(false)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowHighlight(true)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <>
       <div className="mb-12 flex flex-col items-center gap-x-12 xl:flex-row">
@@ -39,12 +51,14 @@ export default function Home({ posts }) {
             <RoughNotation
               animate
               type="highlight"
-              show={true}
+              show={showHighlight}
               color="#DE1D8D"
-              animationDelay={1000}
+              animationDelay={0}
               animationDuration={2500}
             >
-              thoughts, reflections & everything&nbsp;
+              <span className={showHighlight ? 'animate-highlight-text' : ''}>
+                thoughts, reflections & everything&nbsp;
+              </span>
             </RoughNotation>
             in between. Have a good read!{' '}
             <div className="mt-8 text-slate-600 dark:text-slate-400">

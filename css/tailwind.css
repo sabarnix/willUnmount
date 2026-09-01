@@ -170,3 +170,36 @@ input:-webkit-autofill:focus {
   background-color: var(--background);
   color: var(--foreground);
 }
+
+@keyframes highlight-text-sweep {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+.animate-highlight-text {
+  background-image: linear-gradient(to right, #ffffff 50%, #475569 50%);
+  background-size: 200% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: highlight-text-sweep 1.25s ease-out 0s forwards;
+}
+
+.dark .animate-highlight-text {
+  background-image: linear-gradient(to right, #ffffff 50%, #cbd5e1 50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-highlight-text {
+    animation: none;
+    background-position: 0% 0;
+    -webkit-text-fill-color: #ffffff;
+    color: #ffffff;
+  }
+}
