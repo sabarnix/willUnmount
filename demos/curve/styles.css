@@ -1,0 +1,71 @@
+/*
+ * A grade on a curve is a share of the class, not a score threshold. Which band
+ * a row lands in depends on how many rows the table holds — so no selector can
+ * decide it. The same third row is an A in a class of twenty and a B in a class
+ * of eight, from identical markup.
+ */
+
+/*
+ * Registered so the tier computes to a real integer: style() compares computed
+ * values, and an unregistered property would still be the literal text
+ * "round(down, …)". inherits: false keeps the positional value on the row —
+ * piping one down through an inherited custom property freezes it at the first
+ * element's value.
+ */
+@property --tier {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
+}
+
+/*
+ * The row works out a number; this renders it as a letter. system: fixed maps
+ * the first symbol to 1, which is what the + 1 below is for.
+ */
+@counter-style grades {
+  system: fixed;
+  symbols: 'A' 'B' 'C' 'D' 'E';
+  suffix: '';
+  fallback: decimal;
+}
+
+.curve {
+  /* The whole grading policy, in one token. */
+  --bands: 4;
+
+  --tint-a: color-mix(in srgb, var(--color-success, #16a34a) 20%, transparent);
+  --tint-b: color-mix(in srgb, var(--color-info, #0ea5e9) 16%, transparent);
+  --tint-c: color-mix(in srgb, var(--color-warning, #f59e0b) 16%, transparent);
+  --tint-d: color-mix(in srgb, var(--color-error, #ef4444) 16%, transparent);
+  --tint-e: color-mix(in srgb, var(--color-error, #ef4444) 28%, transparent);
+}
+
+tbody tr {
+  /*
+   * 0 for the top band of rows, --bands - 1 for the bottom, at any row count.
+   * The largest value this can take is (n - 1) * bands / n, which stays below
+   * bands for every n — so the result is already in range and needs no clamp,
+   * and a one-row table divides by one rather than by zero.
+   */
+  --tier: round(down, (sibling-index() - 1) * var(--bands) / sibling-count(), 1);
+
+  /* The fallback: a browser without if() drops the line below and stays plain. */
+  background-color: transparent;
+  /* prettier-ignore */
+  background-color: if(
+    style(--tier: 0): var(--tint-a);
+    style(--tier: 1): var(--tint-b);
+    style(--tier: 2): var(--tint-c);
+    style(--tier: 3): var(--tint-d);
+    else: var(--tint-e)
+  );
+
+  /* Nothing in the markup says "B". The row counts its way to the letter. */
+  counter-reset: grade calc(var(--tier) + 1);
+
+  transition: background-color 0.4s var(--ease);
+}
+
+.grade::before {
+  content: counter(grade, grades);
+}

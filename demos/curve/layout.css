@@ -1,6 +1,6 @@
-/* Structure only. The shading and the "N of M" come from styles.css. */
+/* Structure only. The grade letters and the banding come from styles.css. */
 
-.board__table {
+.curve__table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
@@ -24,13 +24,6 @@
     border-bottom: 1px solid color-mix(in srgb, var(--rule) 55%, transparent);
     animation: demo-pop 0.25s var(--ease) backwards;
   }
-}
-
-.rank {
-  width: 5rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
 .score {
@@ -62,7 +55,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-.board__actions {
+.grade {
+  width: 3rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.curve__actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;

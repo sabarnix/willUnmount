@@ -3,7 +3,7 @@ title: 'Practical use cases for new css properties sibling-index() and sibling-c
 date: '2026-08-28'
 tags: ['CSS', 'Frontend']
 draft: false
-summary: Practical use cases for sibling-index() and sibling-count() — a chip list that hides overflow and counts it, and a chart that colors and labels itself by position — no JS, no nth-child pile-up.
+summary: Practical use cases for sibling-index() and sibling-count() — a chip list that hides overflow and counts it, a chart that colors and labels itself by position, and a table that grades its rows on a curve — no JS, no nth-child pile-up.
 ---
 
 ## The problem these solve
@@ -12,7 +12,7 @@ Anything positional in CSS has always meant fighting `nth-child`. Want the third
 
 `sibling-index()` and `sibling-count()` close that gap. Inside any CSS value, `sibling-index()` returns an element's 1-based position among its siblings and `sibling-count()` returns how many it has — both recompute automatically as children are added or removed. They're part of the CSS Values and Units Module Level 5 draft and landed first in Chromium; check caniuse before shipping this outside a demo.
 
-Here are two practical uses I found for them below: a chip list that hides overflow and counts it, and a chart that colors and labels itself by position — no JS driving either.
+Here are three practical uses I found for them below: a chip list that hides overflow and counts it, a chart that colors and labels itself by position, and a table that grades its rows on a curve — no JS driving any of them.
 
 ## Show/hide a chip list after N, with a self-counting overflow label
 
@@ -89,32 +89,62 @@ Both are registered with `@property`, so `transition: --hue-base 0.5s, --saturat
 
 One gotcha: piping a `sibling-index()` value _through_ a custom property and into a descendant's `background` froze at the first group's value for me, silently. Constants in custom properties are fine — it's the positional value that has to stay inline. Setting `color` directly (an inherited property, not `var()`) and deriving the rest with `from currentColor` sidesteps it, which is what this demo does.
 
-If your browser doesn't support these functions yet, both demos degrade rather than break: every element renders at position 1, and the chip list simply shows all its chips.
+## A table that grades on a curve
 
-## A table that shades itself by rank
+<Sandbox demo="curve" previewHeight={400} />
 
-<Sandbox demo="table-rank" previewHeight={380} />
+The first two demos derive their looks from `sibling-index()`. This one is the case where the two functions genuinely need each other, and where `nth-child` isn't merely verbose — it's disqualified.
 
-The chip list leans on `sibling-index()` and the chart on position alone; a table is where the two functions need each other. `sibling-index()` gives a row an absolute number and `sibling-count()` gives it a total. Divide one by the other and the row gets something neither can say by itself — _how far down the table am I_, as a fraction:
+Grading on a curve means a student's letter comes from where they place, not from what they scored. The top quarter of the class gets an A whether that quarter is two people or fifty. So the band a row belongs to isn't a property of the row at all; it's the row's position measured against the total:
 
+{/* prettier-ignore */}
 ```css
 tbody tr {
-  /* 0 on the first row, 1 on the last — at any row count. */
-  --rank: calc((sibling-index() - 1) / max(1, sibling-count() - 1));
+  /* 0 for the top band of rows, --bands - 1 for the bottom, at any row count. */
+  --tier: round(down, (sibling-index() - 1) * var(--bands) / sibling-count(), 1);
 
-  background: color-mix(in srgb, var(--accent) calc((1 - var(--rank)) * 22%), transparent);
-  font-weight: calc(700 - var(--rank) * 300);
+  background-color: if(
+    style(--tier: 0): var(--tint-a);
+    style(--tier: 1): var(--tint-b);
+    style(--tier: 2): var(--tint-c);
+    style(--tier: 3): var(--tint-d);
+    else: var(--tint-e)
+  );
 
-  counter-reset: rank sibling-index() rows sibling-count();
-}
-
-.rank::before {
-  content: counter(rank) ' of ' counter(rows);
+  counter-reset: grade calc(var(--tier) + 1);
 }
 ```
 
-The leader comes out tinted and bold, the last row plain, and every row in between lands evenly spaced along both ramps. `nth-child` can't reach this at any number of rules, because the shade of row 3 isn't a property of row 3 — it depends on whether the table holds five rows or fifty. Add a player and the gradient rebalances, the first column renumbers, and the "of N" in every row updates, all from the one insert. The script picks the row's position by score and nothing else.
+This is the part no selector can express. `:nth-child(3)` matches the third row and always will, but the third row is an A in a class of twenty and a B in a class of eight — same markup, same selector, different answer. `nth-child` counts up from a fixed end and never learns how many siblings came after; there is no rule, and no number of rules, that means "the top 25%." Add a student and watch a row you didn't touch drop a grade.
 
-Two details carry over from the chart. The `max(1, …)` guards a single-row table, where `sibling-count() - 1` is 0 and a division by zero makes the whole declaration invalid rather than falling back to something sensible. And `--rank` is registered `inherits: false` deliberately: the cells need the ramp too, but a positional value piped down through an inherited custom property is exactly what froze earlier. `font-weight` sidesteps it the same way `color` did — the row computes the number and the cells inherit the result, not the formula.
+It also means the score column is decorative. Ken's 87 and Grace's 88 are a point apart and can still land on opposite sides of a boundary — which is exactly what a curve does, and exactly why the total has to appear in the expression.
 
-The same ratio is what steppers, progress rails, and "you are here" markers have always wanted: weight, opacity, or offset as a share of the total, recomputed by the browser instead of by JS on every insert.
+The letter itself never appears in the markup either. The row computes a number, and a custom counter style turns that number into a symbol:
+
+```css
+@counter-style grades {
+  system: fixed;
+  symbols: 'A' 'B' 'C' 'D' 'E';
+  suffix: '';
+}
+
+.grade::before {
+  content: counter(grade, grades);
+}
+```
+
+`system: fixed` maps the first symbol to 1, hence the `+ 1` when the counter is set. Worth noting for what it is: the earlier demos used counters to print a number CSS had counted. Here the counter is an index into a list of categories, so `sibling-index()` ends up producing a label rather than a shade.
+
+Two smaller things. `--tier` is registered as an `<integer>` for the same reason `--overflowing` was in the chip list — `style()` compares computed values, so an unregistered property would still be the literal `round(down, …)` text — and `inherits: false`, because a positional value piped down through an inherited custom property is the freezing bug from the chart. And unlike the chart's ratio, this formula needs no guard: `(n - 1) * bands / n` stays below `bands` for every `n`, and a one-row table divides by one rather than by zero. The division landing on the count instead of `count - 1` is what buys that.
+
+The `--bands` token is the whole grading policy. The third button just writes a new number to it, and every row re-letters and re-tints itself:
+
+```js
+curve.style.setProperty('--bands', bands)
+```
+
+Quota attainment, SLA tiers, heat legends, percentile badges — they're all this shape. A threshold expressed as a share of the total, rebalanced by the browser on every insert rather than by JS walking the list.
+
+## If your browser doesn't support these yet
+
+All three demos degrade rather than break. Every element renders at position 1: the chip list shows all its chips, the chart falls back to a single hue, and the table renders untinted rows that all read as an A — `--tier` is registered with an `initial-value` of 0, so an unsupported formula lands on the top band instead of on nothing. Each `if()` sits under a plain declaration that browsers without it keep, which is what makes the fallback a design rather than an accident.
