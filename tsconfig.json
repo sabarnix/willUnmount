@@ -16,11 +16,9 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "paths": {
-      "*": ["./*"],
-      "@/components/*": ["./components/*"],
-      "@/data/*": ["./data/*"],
-      "@/layouts/*": ["./layouts/*"],
-      "@/css/*": ["./css/*"],
+      "@/*": ["./*"],
+      "app/*": ["./app/*"],
+      "css/*": ["./css/*"],
       "contentlayer/generated": ["./.contentlayer/generated"]
     },
     "plugins": [

@@ -16,6 +16,9 @@
     var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
   --color-primary-50: var(--color-pink-50);
   --color-primary-100: var(--color-pink-100);
   --color-primary-200: var(--color-pink-200);
@@ -40,6 +43,11 @@
   ::backdrop,
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
@@ -138,22 +146,27 @@ input:-webkit-autofill:focus {
   vertical-align: middle;
 }
 
-.nerdy-bg {
-  background-color: #e9ecef;
-  background-image:
-    radial-gradient(circle at 35% 50%, rgba(5, 88, 255, 0.15), rgba(0, 0, 0, 0) 50%),
-    radial-gradient(circle at 65% 50%, rgba(128, 0, 74, 0.15), rgba(0, 0, 0, 0) 50%),
-    radial-gradient(circle at 50% 65%, rgba(74, 128, 0, 0.15), rgba(0, 0, 0, 0) 50%);
-  background-attachment: fixed;
-  @apply text-black;
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+
+  --light-rays-color: rgba(236, 72, 153, 0.12);
+  --light-rays-blend-mode: multiply;
+  --light-rays-ambient-1: rgba(236, 72, 153, 0.07);
+  --light-rays-ambient-2: rgba(99, 102, 241, 0.05);
 }
 
-.dark .nerdy-bg {
-  background-color: #030507;
-  background-image:
-    radial-gradient(circle at 35% 50%, rgba(5, 88, 255, 0.15), rgba(0, 0, 0, 0) 50%),
-    radial-gradient(circle at 65% 50%, rgba(128, 0, 74, 0.15), rgba(0, 0, 0, 0) 50%),
-    radial-gradient(circle at 50% 65%, rgba(74, 128, 0, 0.15), rgba(0, 0, 0, 0) 50%);
-  background-attachment: fixed;
-  @apply text-white;
+.dark {
+  --background: #030507;
+  --foreground: #ffffff;
+
+  --light-rays-color: rgba(244, 114, 182, 0.18);
+  --light-rays-blend-mode: screen;
+  --light-rays-ambient-1: rgba(244, 114, 182, 0.1);
+  --light-rays-ambient-2: rgba(168, 85, 247, 0.08);
+}
+
+.nerdy-bg {
+  background-color: var(--background);
+  color: var(--foreground);
 }
