@@ -1,0 +1,35 @@
+/* Expand/collapse plumbing and entry animation. Core sibling logic is in styles.css. */
+
+.chips li:not(.more) {
+  animation: demo-pop 0.25s var(--ease) backwards;
+  transition: opacity var(--dur) var(--ease);
+
+  &:hover {
+    opacity: 0.75;
+  }
+}
+
+.chips li.more .show-less {
+  display: none;
+}
+
+/* The checkbox is hidden but still focusable — the label is the visible control. */
+.chip-toggle-input:focus-visible ~ .chips li.more label {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Expanded: every chip shows, and the label flips to "Show less". */
+.chip-toggle-input:checked ~ .chips {
+  li:not(.more) {
+    display: inline-flex;
+  }
+
+  .show-more {
+    display: none;
+  }
+
+  .show-less {
+    display: inline;
+  }
+}

@@ -15,42 +15,39 @@ import { useTheme } from 'next-themes'
 const ENTRY_FILE = '/index.html'
 const MARKUP_FILE = '/markup.html'
 const STYLES_FILE = '/styles.css'
+const LAYOUT_FILE = '/layout.css'
 const SCRIPT_FILE = '/script.js'
+const DEMO_FILE = '/demo.css'
 const BASE_FILE = '/base.css'
 
+const DAISYUI_CSS = 'https://cdn.jsdelivr.net/npm/daisyui@5'
+const TAILWIND_BROWSER_JS = 'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4'
+
 /**
- * Page chrome every demo needs but nobody wants to read. Kept out of the
- * visible styles.css so each demo only shows the rules the post is about.
- *
- * The colour scheme comes from the site theme rather than the OS preference:
- * the iframe sits on a Sandpack surface, so following prefers-color-scheme
- * paints black text on a dark panel whenever the two disagree.
+ * Bridges daisyUI's theme to the panel the preview sits on. The colour scheme
+ * comes from the site theme rather than the OS preference: the iframe sits on a
+ * Sandpack surface, so following prefers-color-scheme paints black text on a
+ * dark panel whenever the two disagree.
  */
 function buildBaseCss(dark: boolean) {
   const theme = dark ? defaultDark : defaultLight
-  return `:root {
+  // :root[data-theme] outranks daisyUI's own theme blocks, which key off [data-theme=…].
+  return `:root[data-theme] {
   color-scheme: ${dark ? 'dark' : 'light'};
-}
-
-body {
+  background-color: ${theme.colors.surface1};
   font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-  max-width: 640px;
-  margin: 1.5rem auto;
-  padding: 0 1.2rem 2rem;
-  line-height: 1.5;
-  background: ${theme.colors.surface1};
-  color: ${dark ? '#e5e5e5' : '#1a1a1a'};
 }
 `
 }
 
 /**
  * The static template must serve /index.html, so we generate it from the
- * markup the reader actually sees and keep it hidden.
+ * markup the reader actually sees and keep it hidden. data-theme is daisyUI's
+ * own theming hook, switching between its built-in light and dark themes.
  */
-function buildEntry(markup: string) {
+function buildEntry(markup: string, dark: boolean) {
   return `<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="${dark ? 'dark' : 'light'}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -60,11 +57,17 @@ function buildEntry(markup: string) {
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="${DAISYUI_CSS}" />
+    <script src="${TAILWIND_BROWSER_JS}"></script>
     <link rel="stylesheet" href="${BASE_FILE}" />
+    <link rel="stylesheet" href="${DEMO_FILE}" />
+    <link rel="stylesheet" href="${LAYOUT_FILE}" />
     <link rel="stylesheet" href="${STYLES_FILE}" />
   </head>
   <body>
+    <main>
 ${markup}
+    </main>
     <script src="${SCRIPT_FILE}"></script>
   </body>
 </html>
@@ -82,7 +85,7 @@ function SyncGenerated({ dark }: { dark: boolean }) {
     const { files, updateFile } = sandpack
     const updates: Record<string, string> = {}
 
-    const entry = buildEntry(markup)
+    const entry = buildEntry(markup, dark)
     if (files[ENTRY_FILE]?.code !== entry) updates[ENTRY_FILE] = entry
 
     const base = buildBaseCss(dark)
@@ -98,6 +101,10 @@ interface SandboxClientProps {
   html: string
   css: string
   js: string
+  /** Shared demos/demo.css — hidden, every demo gets it. */
+  demoCss: string
+  /** Optional demos/<name>/layout.css — a visible tab, but never the active one. */
+  layout?: string
   previewHeight?: number
   editorHeight?: number
   activeFile?: string
@@ -107,6 +114,8 @@ export default function SandboxClient({
   html,
   css,
   js,
+  demoCss,
+  layout,
   previewHeight = 340,
   editorHeight = 360,
   activeFile = STYLES_FILE,
@@ -120,13 +129,18 @@ export default function SandboxClient({
 
   const dark = mounted && resolvedTheme === 'dark'
 
+  // Always served so the entry's <link> never 404s; only a tab when it has content.
   const files = {
-    [ENTRY_FILE]: { code: buildEntry(html), hidden: true },
+    [ENTRY_FILE]: { code: buildEntry(html, dark), hidden: true },
     [BASE_FILE]: { code: buildBaseCss(dark), hidden: true },
+    [DEMO_FILE]: { code: demoCss, hidden: true },
+    [LAYOUT_FILE]: { code: layout ?? '', hidden: !layout },
     [MARKUP_FILE]: { code: html },
     [STYLES_FILE]: { code: css },
     [SCRIPT_FILE]: { code: js },
   }
+
+  const visibleFiles = [MARKUP_FILE, STYLES_FILE, ...(layout ? [LAYOUT_FILE] : []), SCRIPT_FILE]
 
   return (
     <div className="my-6">
@@ -135,7 +149,7 @@ export default function SandboxClient({
         files={files}
         theme={dark ? 'dark' : 'light'}
         options={{
-          visibleFiles: [MARKUP_FILE, STYLES_FILE, SCRIPT_FILE],
+          visibleFiles,
           activeFile,
           initMode: 'user-visible',
           recompileDelay: 400,

@@ -11,19 +11,26 @@ interface SandboxProps {
 }
 
 /**
- * Server component: reads a demo's three source files at build time and hands
- * them to the client editor. Keeping the source on disk means Prettier formats
- * it like any other file in the repo.
+ * Server component: reads a demo's source files at build time and hands them to
+ * the client editor. Keeping the source on disk means Prettier formats it like
+ * any other file in the repo.
+ *
+ * styles.css holds only the rules the post is about; the structural CSS lives in
+ * an optional layout.css, and demos/demo.css is shared by every demo.
  */
 export default function Sandbox({ demo, ...rest }: SandboxProps) {
-  const dir = path.join(process.cwd(), 'demos', demo)
-  const read = (file: string) => fs.readFileSync(path.join(dir, file), 'utf8').trim()
+  const demosDir = path.join(process.cwd(), 'demos')
+  const dir = path.join(demosDir, demo)
+  const read = (file: string) => fs.readFileSync(file, 'utf8').trim()
+  const readIfPresent = (file: string) => (fs.existsSync(file) ? read(file) : undefined)
 
   return (
     <SandboxClient
-      html={read('markup.html')}
-      css={read('styles.css')}
-      js={read('script.js')}
+      html={read(path.join(dir, 'markup.html'))}
+      css={read(path.join(dir, 'styles.css'))}
+      js={read(path.join(dir, 'script.js'))}
+      layout={readIfPresent(path.join(dir, 'layout.css'))}
+      demoCss={read(path.join(demosDir, 'demo.css'))}
       {...rest}
     />
   )

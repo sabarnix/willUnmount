@@ -1,6 +1,6 @@
 /*
  * Registered so the palette can be transitioned when the values change, and so
- * `--saturation` stays a real percentage rather than a raw token.
+ * --saturation stays a real percentage rather than a raw token.
  */
 @property --hue-base {
   syntax: '<number>';
@@ -20,34 +20,12 @@
   --hue-step: 55;
   --saturation: 55%;
 
-  /* CanvasText follows the iframe's color-scheme, so these hold up in both themes. */
-  --muted: color-mix(in srgb, CanvasText 60%, transparent);
-  --rule: color-mix(in srgb, CanvasText 25%, transparent);
-  --ease: cubic-bezier(0.16, 1, 0.3, 1);
-
   transition:
     --hue-base 0.5s var(--ease),
     --saturation 0.5s var(--ease);
 }
 
-.chart__plot {
-  display: flex;
-  align-items: flex-end;
-  gap: 1.4rem;
-  height: 200px;
-  margin-bottom: 1.9rem;
-  padding: 0 0.5rem;
-  border-bottom: 1px solid var(--rule);
-}
-
 .group {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  gap: 0.35rem;
-  height: 100%;
-
   /* Hue comes from the group's position among the quarters. */
   color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
 
@@ -56,83 +34,25 @@
 
   &::after {
     content: 'Q' counter(quarter);
-    position: absolute;
-    inset: 100% 0 auto;
-    padding-top: 0.5rem;
-    color: var(--muted);
-    font-size: 0.85rem;
-    text-align: center;
   }
 }
 
+/*
+ * sibling-index() restarts inside each group, so this ramps lightness per
+ * series. Piping a sibling-index() value through a custom property and into a
+ * descendant froze at the first group's value — setting the inherited `color`
+ * above and deriving from currentColor here sidesteps that.
+ */
 .bar {
-  flex: 1;
-  height: calc(var(--value) * 1%);
-  border-radius: 4px 4px 0 0;
-
-  /* sibling-index() restarts inside each group, so this ramps lightness per series. */
   background: hsl(from currentColor h s calc(l + (sibling-index() - 1) * 20));
 }
 
-.chart__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 1.1rem;
-  margin: 0;
-  padding: 0;
-  font-size: 0.85rem;
-  list-style: none;
+/* Same two formulas as .group — the legend cannot drift out of sync. */
+.chart__legend li {
+  color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
+  counter-reset: quarter sibling-index();
 
-  li {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-
-    /* Same two formulas as .group — the legend cannot drift out of sync. */
-    color: hsl(
-      calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%
-    );
-    counter-reset: quarter sibling-index();
-
-    &::after {
-      content: 'Q' counter(quarter);
-      color: var(--muted);
-    }
-  }
-
-  .swatch {
-    flex: none;
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 50%;
-    background: currentColor;
-  }
-}
-
-.chart__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
-
-  button {
-    padding: 0.35rem 1rem;
-    border: 1px solid currentColor;
-    border-radius: 999px;
-    background: transparent;
-    color: #6366f1;
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s var(--ease);
-
-    &:hover {
-      background: color-mix(in srgb, currentColor 12%, transparent);
-    }
-
-    &:focus-visible {
-      outline: 2px solid currentColor;
-      outline-offset: 2px;
-    }
+  &::after {
+    content: 'Q' counter(quarter);
   }
 }

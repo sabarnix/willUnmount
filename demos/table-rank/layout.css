@@ -1,0 +1,70 @@
+/* Structure only. The shading and the "N of M" come from styles.css. */
+
+.board__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  th,
+  td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  thead th {
+    border-bottom: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid color-mix(in srgb, var(--rule) 55%, transparent);
+    animation: demo-pop 0.25s var(--ease) backwards;
+  }
+}
+
+.rank {
+  width: 5rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 45%;
+}
+
+.score__track {
+  flex: 1;
+  overflow: hidden;
+  height: 0.45rem;
+  border-radius: var(--pill);
+  background: color-mix(in srgb, var(--rule) 70%, transparent);
+}
+
+.bar {
+  display: block;
+  width: calc(var(--value) * 1%);
+  height: 100%;
+  background: color-mix(in srgb, var(--accent) 65%, transparent);
+}
+
+.score__num {
+  flex: none;
+  width: 2.5ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.board__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
