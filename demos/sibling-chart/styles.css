@@ -26,14 +26,14 @@
 }
 
 .group {
-  /* Hue comes from the group's position among the quarters. */
+  /* Hue comes from the group's position among its sibling groups. */
   color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
 
   /* The axis label counts itself, so it can never disagree with the bars. */
-  counter-reset: quarter sibling-index();
+  counter-reset: group sibling-index();
 
   &::after {
-    content: 'Q' counter(quarter);
+    content: 'G' counter(group);
   }
 }
 
@@ -50,9 +50,9 @@
 /* Same two formulas as .group — the legend cannot drift out of sync. */
 .chart__legend li {
   color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
-  counter-reset: quarter sibling-index();
+  counter-reset: group sibling-index();
 
   &::after {
-    content: 'Q' counter(quarter);
+    content: 'G' counter(group);
   }
 }

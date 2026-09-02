@@ -16,7 +16,11 @@ document.getElementById('add-group').addEventListener('click', () => {
   }
 
   plot.append(group)
-  legend.insertAdjacentHTML('beforeend', '<li><span class="swatch"></span></li>')
+  const groupIndex = legend.children.length + 1
+  legend.insertAdjacentHTML(
+    'beforeend',
+    `<li aria-label="Group ${groupIndex}"><span class="swatch" aria-hidden="true"></span></li>`
+  )
 })
 
 document.getElementById('randomize').addEventListener('click', () => {
