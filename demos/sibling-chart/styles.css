@@ -44,7 +44,7 @@
  * above and deriving from currentColor here sidesteps that.
  */
 .bar {
-  background: hsl(from currentColor h s calc(l + (sibling-index() - 1) * 20));
+  background: hsl(from currentcolor h s calc(l + (sibling-index() - 1) * 20));
 }
 
 /* Same two formulas as .group — the legend cannot drift out of sync. */

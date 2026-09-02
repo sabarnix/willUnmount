@@ -43,7 +43,6 @@
 
   display: inline-flex;
   display: if(style(--overflow-count: 0): none; else: inline-flex);
-
   counter-reset: overflow var(--overflow-count);
 }
 

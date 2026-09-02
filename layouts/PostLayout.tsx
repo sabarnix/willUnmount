@@ -73,8 +73,8 @@ export default function PostLayout({ content, next, prev, children }: LayoutProp
                 </div>
               )}
             </div>
-            <footer>
-              <div className="divide-gray-200 text-sm leading-5 font-medium xl:col-start-1 xl:row-start-1 xl:divide-y dark:divide-gray-700">
+            <footer className="xl:col-start-1 xl:row-start-1">
+              <div className="divide-gray-200 text-sm leading-5 font-medium xl:divide-y dark:divide-gray-700">
                 {tags && (
                   <div className="py-4 xl:py-8">
                     <h2 className="text-xs tracking-wide text-gray-500 uppercase dark:text-gray-400">

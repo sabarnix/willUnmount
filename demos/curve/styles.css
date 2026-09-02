@@ -62,7 +62,6 @@ tbody tr {
 
   /* Nothing in the markup says "B". The row counts its way to the letter. */
   counter-reset: grade calc(var(--tier) + 1);
-
   transition: background-color 0.4s var(--ease);
 }
 
