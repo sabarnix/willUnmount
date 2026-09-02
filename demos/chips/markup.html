@@ -1,0 +1,42 @@
+<div class="relative">
+  <input type="checkbox" id="chip-toggle" class="chip-toggle-input visually-hidden" />
+  <ul class="chips m-0 flex list-none flex-wrap items-center gap-2 p-0" id="chips-list">
+    <li class="badge badge-soft badge-primary">alpha</li>
+    <li class="badge badge-soft badge-primary">bravo</li>
+    <li class="badge badge-soft badge-primary">charlie</li>
+    <li class="badge badge-soft badge-primary">delta</li>
+    <li class="badge badge-soft badge-primary">echo</li>
+    <li class="badge badge-soft badge-primary">foxtrot</li>
+    <li class="badge badge-soft badge-primary">golf</li>
+    <li class="badge badge-soft badge-primary">hotel</li>
+    <li class="more">
+      <label for="chip-toggle" class="badge badge-dash badge-primary cursor-pointer">
+        <span class="show-more"></span>
+        <span class="show-less">Show less</span>
+      </label>
+    </li>
+  </ul>
+  <form class="mt-4" id="chip-add-form">
+    <div class="join w-full">
+      <input
+        type="text"
+        id="chip-add-input"
+        placeholder="Add a tag…"
+        class="input input-bordered input-primary join-item grow"
+      />
+      <button type="submit" class="btn btn-primary join-item shrink-0">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add tag
+      </button>
+    </div>
+  </form>
+</div>

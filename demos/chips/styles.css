@@ -1,0 +1,51 @@
+/* How many chips stay visible before the list collapses. */
+:root {
+  --visible: 5;
+}
+
+/*
+ * Registered so the values below compute to real integers. Unregistered custom
+ * properties stay raw tokens, and a style() query can only compare computed
+ * values — registering is what makes the if() rules work.
+ */
+@property --overflowing {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --overflow-count {
+  syntax: '<integer>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.chips li {
+  /* 0 while the chip fits, 1 once it is past the cut-off. */
+  --overflowing: clamp(0, sibling-index() - var(--visible), 1);
+
+  display: inline-flex;
+
+  /*
+   * No selector can read sibling-index(), so the count becomes a number and
+   * if() turns that number back into a keyword.
+   */
+  display: if(style(--overflowing: 1): none; else: inline-flex);
+
+  /* Each chip enters a beat after the one before it. */
+  animation-delay: calc((sibling-index() - 1) * 35ms);
+}
+
+/* The toggle: counts what is hidden, and hides itself when nothing is. */
+.chips li.more {
+  /* sibling-count() includes this <li>, hence the extra - 1. */
+  --overflow-count: max(0, sibling-count() - var(--visible) - 1);
+
+  display: inline-flex;
+  display: if(style(--overflow-count: 0): none; else: inline-flex);
+  counter-reset: overflow var(--overflow-count);
+}
+
+.chips li.more .show-more::before {
+  content: '+' counter(overflow) ' more';
+}

@@ -1,17 +1,9 @@
 'use client'
 
 import { Comments as CommentsComponent } from 'pliny/comments/index.js'
-import { useState, useEffect } from 'react'
 import siteMetadata from '@/data/siteMetadata'
 
 export default function Comments({ slug }: { slug: string }) {
-  const [loadComments, setLoadComments] = useState(false)
-
-  useEffect(() => {
-    // Automatically load comments on mount
-    setLoadComments(true)
-  }, [])
-
   if (!siteMetadata.comments?.provider) {
     return null
   }
@@ -33,13 +25,5 @@ export default function Comments({ slug }: { slug: string }) {
     )
   }
 
-  return (
-    <>
-      {loadComments ? (
-        <CommentsComponent commentsConfig={siteMetadata.comments} slug={slug} />
-      ) : (
-        <button onClick={() => setLoadComments(true)}>Load Comments</button>
-      )}
-    </>
-  )
+  return <CommentsComponent commentsConfig={siteMetadata.comments} slug={slug} />
 }

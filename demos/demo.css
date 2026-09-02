@@ -1,0 +1,54 @@
+/*
+ * Shared by every demo. daisyUI + Tailwind's browser build (loaded from a CDN
+ * by the sandbox) style anything carrying their classes — buttons, inputs,
+ * the join group — so this file only aliases daisyUI's colour tokens and gives
+ * <main> some breathing room. With no network the previews fall back to
+ * browser defaults plus this file — plainer, but still readable.
+ */
+
+:root {
+  --accent: var(--color-primary, #6366f1);
+  --muted: color-mix(in srgb, var(--color-base-content, CanvasText) 60%, transparent);
+  --rule: var(--color-base-300, color-mix(in srgb, CanvasText 25%, transparent));
+
+  --pill: 999px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 0.2s;
+}
+
+body {
+  color: var(--color-base-content, CanvasText);
+}
+
+main {
+  padding: 1.25rem;
+}
+
+/* The entry animation itself is generic — only the staggered delay is the point. */
+@keyframes demo-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(4px);
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+  border-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}

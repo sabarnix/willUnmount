@@ -1,0 +1,58 @@
+/*
+ * Registered so the palette can be transitioned when the values change, and so
+ * --saturation stays a real percentage rather than a raw token.
+ */
+@property --hue-base {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 205;
+}
+
+@property --saturation {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 55%;
+}
+
+.chart {
+  /* The knobs the Randomize button turns. Everything below inherits them. */
+  --hue-base: 205;
+  --hue-step: 55;
+  --saturation: 55%;
+
+  transition:
+    --hue-base 0.5s var(--ease),
+    --saturation 0.5s var(--ease);
+}
+
+.group {
+  /* Hue comes from the group's position among its sibling groups. */
+  color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
+
+  /* The axis label counts itself, so it can never disagree with the bars. */
+  counter-reset: group sibling-index();
+
+  &::after {
+    content: 'G' counter(group);
+  }
+}
+
+/*
+ * sibling-index() restarts inside each group, so this ramps lightness per
+ * series. Piping a sibling-index() value through a custom property and into a
+ * descendant froze at the first group's value — setting the inherited `color`
+ * above and deriving from currentColor here sidesteps that.
+ */
+.bar {
+  background: hsl(from currentcolor h s calc(l + (sibling-index() - 1) * 20));
+}
+
+/* Same two formulas as .group — the legend cannot drift out of sync. */
+.chart__legend li {
+  color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
+  counter-reset: group sibling-index();
+
+  &::after {
+    content: 'G' counter(group);
+  }
+}

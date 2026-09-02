@@ -1,0 +1,70 @@
+/* Structure only. Every colour and label comes from styles.css. */
+
+.chart__plot {
+  display: flex;
+  align-items: flex-end;
+  gap: 1.4rem;
+  height: 200px;
+  margin-bottom: 1.9rem;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.group {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.35rem;
+  height: 100%;
+
+  &::after {
+    position: absolute;
+    inset: 100% 0 auto;
+    padding-top: 0.5rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+}
+
+.bar {
+  flex: 1;
+  height: calc(var(--value) * 1%);
+  border-radius: 4px 4px 0 0;
+}
+
+.chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+  margin: 0;
+  padding: 0;
+  font-size: 0.85rem;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    &::after {
+      color: var(--muted);
+    }
+  }
+
+  .swatch {
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: currentcolor;
+  }
+}
+
+.chart__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}

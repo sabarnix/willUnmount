@@ -15,8 +15,7 @@ const siteMetadata = {
   // x: 'https://twitter.com/sabarnid',
   // twitter: 'https://twitter.com/Twitter',
   // youtube: 'https://youtube.com',
-  linkedin: 'https://www.linkedin.com/sabarnix',
-  // instagram: 'https://www.instagram.com/sabarni.d',
+  linkedin: 'https://www.linkedin.com/in/sabarnix/',
   // medium: 'https://medium.com',
   locale: 'en-US',
   // set to true if you want a navbar fixed to the top
