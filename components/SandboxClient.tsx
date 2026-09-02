@@ -18,6 +18,7 @@ const STYLES_FILE = '/styles.css'
 const LAYOUT_FILE = '/layout.css'
 const SCRIPT_FILE = '/script.js'
 const DEMO_FILE = '/demo.css'
+const DEMO_JS_FILE = '/demo.js'
 const BASE_FILE = '/base.css'
 
 const DAISYUI_CSS = 'https://cdn.jsdelivr.net/npm/daisyui@5'
@@ -68,6 +69,7 @@ function buildEntry(markup: string, dark: boolean) {
     <main>
 ${markup}
     </main>
+    <script src="${DEMO_JS_FILE}"></script>
     <script src="${SCRIPT_FILE}"></script>
   </body>
 </html>
@@ -103,6 +105,8 @@ interface SandboxClientProps {
   js: string
   /** Shared demos/demo.css — hidden, every demo gets it. */
   demoCss: string
+  /** Shared demos/demo.js — hidden, every demo gets it. */
+  demoJs: string
   /** Optional demos/<name>/layout.css — a visible tab, but never the active one. */
   layout?: string
   previewHeight?: number
@@ -115,6 +119,7 @@ export default function SandboxClient({
   css,
   js,
   demoCss,
+  demoJs,
   layout,
   previewHeight = 340,
   editorHeight = 360,
@@ -134,6 +139,7 @@ export default function SandboxClient({
     [ENTRY_FILE]: { code: buildEntry(html, dark), hidden: true },
     [BASE_FILE]: { code: buildBaseCss(dark), hidden: true },
     [DEMO_FILE]: { code: demoCss, hidden: true },
+    [DEMO_JS_FILE]: { code: demoJs, hidden: true },
     [LAYOUT_FILE]: { code: layout ?? '', hidden: !layout },
     [MARKUP_FILE]: { code: html },
     [STYLES_FILE]: { code: css },

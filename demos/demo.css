@@ -54,28 +54,22 @@ main {
 }
 
 /*
- * sibling-index()/sibling-count() only reached Firefox in August 2026 and
- * aren't in every browser yet. counter-reset is the same context every demo
- * actually uses them in, so it doubles as the feature test: an unsupporting
- * browser can't parse this declaration, which is exactly what @supports checks.
- * Each demo opts in by putting .needs-sibling-fns on its root element and
- * adding a sibling .no-support element for the fallback message.
+ * Feature-detection fallback. @supports can't do this job: sibling-index(),
+ * sibling-count(), and if()/style() are math-like functions, so an unknown one
+ * still parses fine in a numeric context and only goes invalid at
+ * computed-value time — @supports only checks parse-time validity, so it
+ * reports "supported" in browsers that silently no-op the declaration instead
+ * of running it. demo.js actually computes a probe value and toggles [hidden]
+ * on the real element, which is a check no CSS-only test can do.
+ *
+ * Default state assumes support (today that means Chromium) so there's no
+ * flash of the fallback message before the check runs; demo.js flips it in
+ * browsers that fail the probe.
  */
 .no-support {
-  display: none;
-}
-
-@supports not (counter-reset: a sibling-index() b sibling-count()) {
-  .needs-sibling-fns {
-    display: none;
-  }
-
-  .no-support {
-    display: block;
-    padding: 1.5rem;
-    border: 1px dashed var(--rule);
-    border-radius: 8px;
-    color: var(--muted);
-    text-align: center;
-  }
+  padding: 1.5rem;
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
 }

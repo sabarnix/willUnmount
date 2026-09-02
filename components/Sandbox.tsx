@@ -31,6 +31,7 @@ export default function Sandbox({ demo, ...rest }: SandboxProps) {
       js={read(path.join(dir, 'script.js'))}
       layout={readIfPresent(path.join(dir, 'layout.css'))}
       demoCss={read(path.join(demosDir, 'demo.css'))}
+      demoJs={read(path.join(demosDir, 'demo.js'))}
       {...rest}
     />
   )
