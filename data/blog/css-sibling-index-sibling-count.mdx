@@ -1,150 +1,35 @@
 ---
-title: 'Practical use cases for new css properties sibling-index() and sibling-count()'
+title: 'Experimenting with new widely available css functions sibling-index() and sibling-count()'
 date: '2026-08-28'
 tags: ['CSS', 'Frontend']
 draft: false
-summary: Practical use cases for sibling-index() and sibling-count() — a chip list that hides overflow and counts it, a chart that colors and labels itself by position, and a table that grades its rows on a curve — no JS, no nth-child pile-up.
+summary: Example usage of newly .
 ---
 
-## The problem these solve
+`sibling-index() and sibling-count()` is now widely available after firefox added support on August 2026.
 
-Anything positional in CSS has always meant fighting `nth-child`. Want the third item colored differently? `:nth-child(3)`. Want an element to know how many siblings it has — "I'm 2 of 7" — so it can react to that? You needed a build-time SCSS loop generating one rule per index, or JS stamping a `--index` custom property onto every child.
+As the name suggests [`sibling-index()`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-index) is a function which returns the index of an element in DOM relative to it's sibling and [`sibling-count()`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-count) returns number of sibling DOM elements.
 
-`sibling-index()` and `sibling-count()` close that gap. Inside any CSS value, `sibling-index()` returns an element's 1-based position among its siblings and `sibling-count()` returns how many it has — both recompute automatically as children are added or removed. They're part of the CSS Values and Units Module Level 5 draft and landed first in Chromium; check caniuse before shipping this outside a demo.
+I was trying to see what use cases can achieved with these function for which we needed help of javascript earlier.
 
-Here are three practical uses I found for them below: a chip list that hides overflow and counts it, a chart that colors and labels itself by position, and a table that grades its rows on a curve — no JS driving any of them.
-
-## Show/hide a chip list after N, with a self-counting overflow label
+## Show n chips whith view more
 
 <Sandbox demo="chips" previewHeight={260} />
 
-Every chip renders up front. The chip's own position decides whether it survives:
+try changing the `--visible` css variable value and see how the component can be contrlled only with css. including the "n more" count.
 
-```css
-.chips li {
-  /* 0 while the chip fits, 1 once it is past the cut-off. */
-  --overflowing: clamp(0, sibling-index() - var(--visible), 1);
+The javascript here only used to add new tags.
 
-  display: inline-flex;
-  display: if(style(--overflowing: 1): none; else: inline-flex);
-}
-```
+notice that it uses `counter()` css function to display count, the difference between this and `sibling-count()` is that it returns string and the later returns number. Former is more suited for displaying count and later to do some computation on the count.
 
-This is the awkward seam in the whole feature: `sibling-index()` is a _value_ function, so no selector can read it. `nth-child` is still the only way to match on position — but you don't have to match at all. Turn the position into a number, then let [`if()`](https://developer.chrome.com/blog/if-article) turn that number back into a keyword. The cut-off lives in one custom property instead of being baked into a selector, so changing five to eight is a one-token edit.
-
-Two things make that work. `--overflowing` is registered with `@property` as an `<integer>`, because a `style()` query compares _computed_ values and an unregistered property would still be the literal text `clamp(0, sibling-index() …)`. And the bare `display: inline-flex` above it is the fallback: a browser without `if()` drops the second declaration and shows every chip.
-
-The "+N more" label counts its own siblings rather than carrying a number baked in by hand or recomputed by JS — and disappears on the same principle when the count reaches zero:
-
-```css
-.chips li.more {
-  --overflow-count: max(0, sibling-count() - var(--visible) - 1);
-
-  display: inline-flex;
-  display: if(style(--overflow-count: 0): none; else: inline-flex);
-
-  counter-reset: overflow var(--overflow-count);
-}
-
-.chips li.more .show-more::before {
-  content: '+' counter(overflow) ' more';
-}
-```
-
-`sibling-count()` includes the `.more` `<li>` itself, hence the extra `- 1`. Add a chip through the form and the label, the cut-off, and the count all move together.
-
-The same function does the undemanding work too: `animation-delay: calc((sibling-index() - 1) * 35ms)` staggers the chips on entry, one line where a `nth-child` loop used to be.
-
-## Auto-generate colors and labels for a chart
+## Auto-generate chart colors
 
 <Sandbox demo="sibling-chart" previewHeight={420} />
 
-A grouped bar chart with no color and no axis label anywhere in the markup:
-
-```css
-.group {
-  color: hsl(calc(var(--hue-base) + (sibling-index() - 1) * var(--hue-step)) var(--saturation) 45%);
-  counter-reset: quarter sibling-index();
-
-  &::after {
-    content: 'Q' counter(quarter);
-  }
-}
-
-.bar {
-  background: hsl(from currentColor h s calc(l + (sibling-index() - 1) * 20));
-}
-```
-
-`.group` picks a hue from its position among the quarters and names itself from the same number. `sibling-index()` resets inside each group, so `.bar` layers a lightness ramp on top using relative color syntax — series 1 is the darkest shade, series 3 the lightest, in every group. The legend reuses both formulas on a separate list, so a new group and its legend entry can never drift out of sync.
-
-Because only the constants come from custom properties, the whole palette is one `setProperty` call away from changing. That's the Randomize button:
-
-```js
-chart.style.setProperty('--hue-base', Math.floor(Math.random() * 360))
-chart.style.setProperty('--saturation', `${Math.floor(Math.random() * 45) + 40}%`)
-```
-
-Both are registered with `@property`, so `transition: --hue-base 0.5s, --saturation 0.5s` on the container animates the entire chart — bars, axis labels, legend swatches — through the hue wheel together. "Add quarter" appends three bars and an empty `<li>`; JS never picks a color or writes a label.
-
-One gotcha: piping a `sibling-index()` value _through_ a custom property and into a descendant's `background` froze at the first group's value for me, silently. Constants in custom properties are fine — it's the positional value that has to stay inline. Setting `color` directly (an inherited property, not `var()`) and deriving the rest with `from currentColor` sidesteps it, which is what this demo does.
+Usually you pass an array of colors to javascript charting library which asigns the color based on index. But that means you theming is duplicated. The theming of charts can now completely be handled with css only based on index.
 
 ## A table that grades on a curve
 
 <Sandbox demo="curve" previewHeight={400} />
 
-The first two demos derive their looks from `sibling-index()`. This one is the case where the two functions genuinely need each other, and where `nth-child` isn't merely verbose — it's disqualified.
-
-Grading on a curve means a student's letter comes from where they place, not from what they scored. The top quarter of the class gets an A whether that quarter is two people or fifty. So the band a row belongs to isn't a property of the row at all; it's the row's position measured against the total:
-
-{/* prettier-ignore */}
-```css
-tbody tr {
-  /* 0 for the top band of rows, --bands - 1 for the bottom, at any row count. */
-  --tier: round(down, (sibling-index() - 1) * var(--bands) / sibling-count(), 1);
-
-  background-color: if(
-    style(--tier: 0): var(--tint-a);
-    style(--tier: 1): var(--tint-b);
-    style(--tier: 2): var(--tint-c);
-    style(--tier: 3): var(--tint-d);
-    else: var(--tint-e)
-  );
-
-  counter-reset: grade calc(var(--tier) + 1);
-}
-```
-
-This is the part no selector can express. `:nth-child(3)` matches the third row and always will, but the third row is an A in a class of twenty and a B in a class of eight — same markup, same selector, different answer. `nth-child` counts up from a fixed end and never learns how many siblings came after; there is no rule, and no number of rules, that means "the top 25%." Add a student and watch a row you didn't touch drop a grade.
-
-It also means the score column is decorative. Ken's 87 and Grace's 88 are a point apart and can still land on opposite sides of a boundary — which is exactly what a curve does, and exactly why the total has to appear in the expression.
-
-The letter itself never appears in the markup either. The row computes a number, and a custom counter style turns that number into a symbol:
-
-```css
-@counter-style grades {
-  system: fixed;
-  symbols: 'A' 'B' 'C' 'D' 'E';
-  suffix: '';
-}
-
-.grade::before {
-  content: counter(grade, grades);
-}
-```
-
-`system: fixed` maps the first symbol to 1, hence the `+ 1` when the counter is set. Worth noting for what it is: the earlier demos used counters to print a number CSS had counted. Here the counter is an index into a list of categories, so `sibling-index()` ends up producing a label rather than a shade.
-
-Two smaller things. `--tier` is registered as an `<integer>` for the same reason `--overflowing` was in the chip list — `style()` compares computed values, so an unregistered property would still be the literal `round(down, …)` text — and `inherits: false`, because a positional value piped down through an inherited custom property is the freezing bug from the chart. And unlike the chart's ratio, this formula needs no guard: `(n - 1) * bands / n` stays below `bands` for every `n`, and a one-row table divides by one rather than by zero. The division landing on the count instead of `count - 1` is what buys that.
-
-The `--bands` token is the whole grading policy. The third button just writes a new number to it, and every row re-letters and re-tints itself:
-
-```js
-curve.style.setProperty('--bands', bands)
-```
-
-Quota attainment, SLA tiers, heat legends, percentile badges — they're all this shape. A threshold expressed as a share of the total, rebalanced by the browser on every insert rather than by JS walking the list.
-
-## If your browser doesn't support these yet
-
-All three demos degrade rather than break. Every element renders at position 1: the chip list shows all its chips, the chart falls back to a single hue, and the table renders untinted rows that all read as an A — `--tier` is registered with an `initial-value` of 0, so an unsupported formula lands on the top band instead of on nothing. Each `if()` sits under a plain declaration that browsers without it keep, which is what makes the fallback a design rather than an accident.
+This example demonstrates how even semantic coloring can be achieved through pure css.
