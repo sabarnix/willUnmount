@@ -52,3 +52,30 @@ main {
     transition-duration: 0.01ms !important;
   }
 }
+
+/*
+ * sibling-index()/sibling-count() only reached Firefox in August 2026 and
+ * aren't in every browser yet. counter-reset is the same context every demo
+ * actually uses them in, so it doubles as the feature test: an unsupporting
+ * browser can't parse this declaration, which is exactly what @supports checks.
+ * Each demo opts in by putting .needs-sibling-fns on its root element and
+ * adding a sibling .no-support element for the fallback message.
+ */
+.no-support {
+  display: none;
+}
+
+@supports not (counter-reset: a sibling-index() b sibling-count()) {
+  .needs-sibling-fns {
+    display: none;
+  }
+
+  .no-support {
+    display: block;
+    padding: 1.5rem;
+    border: 1px dashed var(--rule);
+    border-radius: 8px;
+    color: var(--muted);
+    text-align: center;
+  }
+}
