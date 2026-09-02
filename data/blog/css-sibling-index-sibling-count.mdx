@@ -3,33 +3,31 @@ title: 'Experimenting with new widely available css functions sibling-index() an
 date: '2026-08-28'
 tags: ['CSS', 'Frontend']
 draft: false
-summary: Example usage of newly .
+summary: A hands-on look at CSS's new sibling-index() and sibling-count() functions, and the JS-free UI tricks they unlock.
 ---
 
-`sibling-index() and sibling-count()` is now widely available after firefox added support on August 2026.
+[`sibling-index()`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-index) and [`sibling-count()`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-count) became widely available in August 2026, when Firefox added support. As the names suggest, `sibling-index()` returns an element's position among its siblings, and `sibling-count()` returns the total number of siblings — both as plain numbers.
 
-As the name suggests [`sibling-index()`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-index) is a function which returns the index of an element in DOM relative to it's sibling and [`sibling-count()`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/sibling-count) returns number of sibling DOM elements.
+I wanted to see what these could do for cases that used to need JavaScript.
 
-I was trying to see what use cases can achieved with these function for which we needed help of javascript earlier.
-
-## Show n chips whith view more
+## Show n chips with a "view more" count
 
 <Sandbox demo="chips" previewHeight={260} />
 
-try changing the `--visible` css variable value and see how the component can be contrlled only with css. including the "n more" count.
+Try changing the `--visible` CSS variable and watch the component respond — including the "n more" count — with zero JavaScript involved.
 
-The javascript here only used to add new tags.
+JS here is only used to add new chips.
 
-notice that it uses `counter()` css function to display count, the difference between this and `sibling-count()` is that it returns string and the later returns number. Former is more suited for displaying count and later to do some computation on the count.
+Notice it also uses the `counter()` CSS function to display the count. The difference: `counter()` returns a string, while `sibling-count()` returns a number — better suited when you want to compute with it rather than just display it.
 
 ## Auto-generate chart colors
 
 <Sandbox demo="sibling-chart" previewHeight={420} />
 
-Usually you pass an array of colors to javascript charting library which asigns the color based on index. But that means you theming is duplicated. The theming of charts can now completely be handled with css only based on index.
+Normally you'd pass an array of colors to your charting library, which assigns them by index — duplicating your theme in JS. With `sibling-index()`, that color logic can live entirely in CSS instead.
 
 ## A table that grades on a curve
 
 <Sandbox demo="curve" previewHeight={400} />
 
-This example demonstrates how even semantic coloring can be achieved through pure css.
+This one shows that even semantic coloring — grading each cell relative to its siblings — can be done in pure CSS.
