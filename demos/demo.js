@@ -69,16 +69,25 @@
   }
 
   function supportsRelativeColor() {
+    // Mirrors sibling-chart's .bar rule: sibling-index() nested inside a
+    // relative colour channel. A browser can support relative colours and
+    // sibling-index() separately and still not accept this combination, so
+    // the probe has to use both together rather than testing each in isolation.
     const p = probe(
-      '.probe-rc { color: red; background-color: hsl(from currentcolor h s calc(l - 50)); }',
+      `.probe-rc { color: red; }
+      .probe-rc > * { background-color: hsl(from currentcolor h s calc(l + (sibling-index() - 1) * 20)); }`,
       (host) => {
         host.className = 'probe-rc'
+        host.innerHTML = '<i></i><i></i>'
       }
     )
-    const bg = computed(p.host, 'background-color')
+    const [first, second] = p.host.children
+    const bgFirst = computed(first, 'background-color')
+    const bgSecond = computed(second, 'background-color')
     p.cleanup()
-    // Unsupported browsers drop the declaration, leaving the initial transparent.
-    return bg !== '' && bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent'
+    // Unsupported browsers either drop the declaration (leaving it transparent)
+    // or ignore sibling-index(), leaving every sibling the same colour.
+    return bgFirst !== '' && bgFirst !== 'rgba(0, 0, 0, 0)' && bgFirst !== bgSecond
   }
 
   const FEATURE_TESTS = {
