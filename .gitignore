@@ -45,3 +45,7 @@ pnpm-debug.log*
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Claude
+.claude/settings.local.json
+

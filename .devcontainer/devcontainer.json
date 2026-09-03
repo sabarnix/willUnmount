@@ -1,11 +1,26 @@
 {
   "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "remoteUser": "node",
   "hostRequirements": {
     "memory": "8gb"
   },
+  "features": {
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/.claude,target=/home/node/.claude,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.claude.json,target=/home/node/.claude.json,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.gemini,target=/home/node/.gemini,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude"
+  },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/node/.gemini/bin:/home/node/.local/bin"
+  },
   "waitFor": "onCreateCommand",
   "updateContentCommand": "corepack enable && pnpm install",
-  "postCreateCommand": "",
+  "postCreateCommand": "([ -f /home/node/.gemini/bin/agy ] && sudo ln -sf /home/node/.gemini/bin/agy /usr/local/bin/agy); which claude >/dev/null 2>&1 && [ -d /home/node/.claude ] && echo '✓ Claude CLI and host session available' || echo '✗ Claude host session not available'; which agy >/dev/null 2>&1 && echo '✓ Antigravity CLI (agy) available from host' || echo '✗ Antigravity CLI (agy) not available from host'",
   "postAttachCommand": "pnpm dev",
   "customizations": {
     "codespaces": {
@@ -15,7 +30,12 @@
       "settings": {
         "editor.formatOnSave": true
       },
-      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "anthropic.claude-code",
+        "google.google-antigravity"
+      ]
     }
   },
   "portsAttributes": {
