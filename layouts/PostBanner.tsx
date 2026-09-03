@@ -38,9 +38,7 @@ export default function PostMinimal({ content, next, prev, children }: LayoutPro
               <PageTitle>{title}</PageTitle>
             </div>
           </div>
-          <div className="prose max-w-none py-4 [overflow-wrap:anywhere] break-words dark:prose-invert">
-            {children}
-          </div>
+          <div className="prose max-w-none py-4 dark:prose-invert">{children}</div>
           {siteMetadata.comments && (
             <div className="pt-6 pb-6 text-center text-gray-700 dark:text-gray-300" id="comment">
               <Comments slug={slug} />

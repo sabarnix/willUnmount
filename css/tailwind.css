@@ -45,12 +45,6 @@
     border-color: var(--color-gray-200, currentColor);
   }
 
-  html,
-  body {
-    max-width: 100vw;
-    overflow-x: clip;
-  }
-
   body {
     background-color: var(--background);
     color: var(--foreground);
@@ -59,8 +53,8 @@
 
 /* Typography plugin customisation (was `theme.extend.typography` in tailwind.config.js). */
 .prose {
+  /* Long URLs and inline code are the one thing prose can't wrap on its own. */
   overflow-wrap: break-word;
-  word-break: break-word;
   a {
     color: var(--color-primary-500);
     &:hover {
@@ -209,13 +203,5 @@ input:-webkit-autofill:focus {
     background-position: 0% 0;
     -webkit-text-fill-color: #ffffff;
     color: #ffffff;
-  }
-}
-
-/* Ensure pliny's Bleed component matches mobile SectionContainer padding */
-@media (max-width: 639px) {
-  .-mx-6 {
-    margin-left: -1rem;
-    margin-right: -1rem;
   }
 }

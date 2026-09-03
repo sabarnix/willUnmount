@@ -149,7 +149,7 @@ export default function SandboxClient({
   const visibleFiles = [MARKUP_FILE, STYLES_FILE, ...(layout ? [LAYOUT_FILE] : []), SCRIPT_FILE]
 
   return (
-    <div className="my-6 w-full max-w-full min-w-0 overflow-hidden rounded-lg">
+    <div className="my-6">
       <SandpackProvider
         template="static"
         files={files}
@@ -162,14 +162,14 @@ export default function SandboxClient({
         }}
       >
         <SyncGenerated dark={dark} />
-        <SandpackLayout style={{ flexDirection: 'column', width: '100%', maxWidth: '100%' }}>
+        <SandpackLayout style={{ flexDirection: 'column' }}>
           <SandpackPreview
-            style={{ height: previewHeight, width: '100%', maxWidth: '100%', flex: '0 0 auto' }}
+            style={{ height: previewHeight, width: '100%', flex: '0 0 auto' }}
             showOpenInCodeSandbox={false}
             showRefreshButton
           />
           <SandpackCodeEditor
-            style={{ height: editorHeight, width: '100%', maxWidth: '100%', flex: '0 0 auto' }}
+            style={{ height: editorHeight, width: '100%', flex: '0 0 auto' }}
             showTabs
             showLineNumbers
             wrapContent
