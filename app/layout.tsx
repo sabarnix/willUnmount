@@ -97,7 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fff" />
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
       <link rel="alternate" type="application/rss+xml" href={`${basePath}/feed.xml`} />
-      <body className="nerdy-bg relative min-h-screen pl-[calc(100vw-100%)] antialiased">
+      <body className="nerdy-bg relative min-h-screen antialiased">
         <LightRays className="pointer-events-none fixed inset-0 z-0" />
         <div className="relative z-10 flex min-h-screen flex-col justify-between">
           <ThemeProviders>

@@ -53,6 +53,8 @@
 
 /* Typography plugin customisation (was `theme.extend.typography` in tailwind.config.js). */
 .prose {
+  /* Long URLs and inline code are the one thing prose can't wrap on its own. */
+  overflow-wrap: break-word;
   a {
     color: var(--color-primary-500);
     &:hover {
