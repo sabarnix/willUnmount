@@ -20,7 +20,7 @@
   },
   "waitFor": "onCreateCommand",
   "updateContentCommand": "corepack enable && pnpm install",
-  "postCreateCommand": "which claude >/dev/null 2>&1 || npm install -g @anthropic-ai/claude-code; which agy >/dev/null 2>&1 || ( [ -f /home/node/.gemini/bin/agy ] && sudo ln -sf /home/node/.gemini/bin/agy /usr/local/bin/agy ) || curl -fsSL https://antigravity.google/cli/install.sh | bash",
+  "postCreateCommand": "([ -f /home/node/.gemini/bin/agy ] && sudo ln -sf /home/node/.gemini/bin/agy /usr/local/bin/agy); which claude >/dev/null 2>&1 && [ -d /home/node/.claude ] && echo '✓ Claude CLI and host session available' || echo '✗ Claude host session not available'; which agy >/dev/null 2>&1 && echo '✓ Antigravity CLI (agy) available from host' || echo '✗ Antigravity CLI (agy) not available from host'",
   "postAttachCommand": "pnpm dev",
   "customizations": {
     "codespaces": {
