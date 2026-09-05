@@ -5,7 +5,7 @@ const siteMetadata = {
   headerTitle: 'willUnmount',
   description: 'my technical blog',
   language: 'en-us',
-  theme: 'dark', // system, dark or light
+  theme: 'system', // system, dark or light
   siteUrl: 'https://willunmount.sabarni.in',
   siteRepo: 'https://github.com/sabarnix/willUnmount',
   siteLogo: `${process.env.BASE_PATH || ''}/static/images/logo.png`,
