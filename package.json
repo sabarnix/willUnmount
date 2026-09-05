@@ -10,7 +10,7 @@
   },
   "homepage": "https://willunmount.sabarni.in",
   "engines": {
-    "node": "22.x"
+    "node": ">=22.13"
   },
   "scripts": {
     "start": "next dev --webpack",
