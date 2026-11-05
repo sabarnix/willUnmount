@@ -1,9 +1,16 @@
 {
-  "name": "tailwind-nextjs-starter-blog",
-  "version": "2.3.0",
+  "name": "willunmount",
+  "version": "0.1.0",
   "private": true,
+  "description": "Personal technical blog by Sabarni Das",
+  "author": "Sabarni Das <sabarnix@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sabarnix/willUnmount.git"
+  },
+  "homepage": "https://willunmount.sabarni.in",
   "engines": {
-    "node": "22.x"
+    "node": ">=22.13"
   },
   "scripts": {
     "start": "next dev --webpack",
